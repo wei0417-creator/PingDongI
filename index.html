@@ -25,6 +25,10 @@
         <p class="text-teal-100 text-sm mt-1">個案評估與前後測數據紀錄平台</p>
       </div>
       <form id="loginForm" class="p-6 space-y-4">
+        <div id="cloudSyncLoginNotice" class="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-3 py-2 rounded-lg flex items-center justify-between">
+          <span id="loginCloudStatusText">⏳ 正在從 Google 雲端同步最新帳號清冊...</span>
+          <button type="button" onclick="syncFromCloud(true)" class="underline font-bold hover:text-sky-950">立即重整</button>
+        </div>
         <div id="loginError" class="hidden bg-rose-50 border border-rose-200 text-rose-700 text-xs px-3 py-2.5 rounded-lg font-medium"></div>
         <div>
           <label class="block text-sm font-semibold text-slate-700 mb-1">施測者帳號</label>
@@ -37,7 +41,7 @@
             class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none text-sm" />
         </div>
         <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 space-y-1.5">
-          <p class="font-semibold text-slate-700">快速填入測試帳號：</p>
+          <p class="font-semibold text-slate-700">快速填入預設測試帳號：</p>
           <div class="flex flex-wrap gap-2">
             <button type="button" onclick="quickFillLogin('admin', 'rainforest123')"
               class="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded font-medium transition">
@@ -72,7 +76,7 @@
             <span>住民名冊：<strong id="totalResidentBadge" class="text-teal-700">124</strong> 位</span>
             <span>•</span>
             <span id="cloudStatusBadge" class="inline-flex items-center gap-1 text-emerald-700 font-medium">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 已綁定 Google GAS 雲端
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 已綁定最新 GAS 雲端
             </span>
           </div>
         </div>
@@ -83,6 +87,11 @@
         <button id="btnAccountManage" onclick="openAccountModal()"
           class="hidden px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1">
           🔐 施測者帳號管理
+        </button>
+
+        <button onclick="syncFromCloud(true)"
+          class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1">
+          🔄 從雲端讀取最新資料
         </button>
 
         <button onclick="openAddResidentModal()"
@@ -97,12 +106,12 @@
 
         <button onclick="openGasModal()"
           class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition">
-          ⚙️ GAS 連線設定
+          ⚙️ GAS 設定
         </button>
 
         <button onclick="exportAllAssessmentsCSV()"
           class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold rounded-lg border border-amber-300 transition">
-          📥 匯出前後測 CSV
+          📥 匯出 CSV
         </button>
 
         <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
@@ -562,16 +571,21 @@
   <div id="accountModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
     <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full overflow-hidden">
       <div class="px-5 py-4 bg-purple-700 text-white flex items-center justify-between">
-        <h3 class="font-bold text-base">🔐 管理者：施測者帳號與密碼設定</h3>
+        <h3 class="font-bold text-base">🔐 管理者：施測者帳號與密碼設定（即時同步雲端）</h3>
         <button onclick="closeModal('accountModal')" class="text-white/80 hover:text-white text-lg">✕</button>
       </div>
       <div class="p-5 space-y-4 text-xs">
-        <form id="createAccountForm" class="grid grid-cols-1 sm:grid-cols-4 gap-2 bg-purple-50 p-3 rounded-xl border border-purple-100">
+        <div class="bg-purple-50 border border-purple-200 text-purple-900 px-3 py-2 rounded-lg flex items-center justify-between">
+          <span>✅ 新增、改密碼或刪除帳號後會自動同步寫入 Google 試算表「施測者帳號清冊」。</span>
+          <button type="button" onclick="syncAccountsToCloud(true)" class="underline font-bold">立即手動上傳帳號</button>
+        </div>
+
+        <form id="createAccountForm" class="grid grid-cols-1 sm:grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
           <input type="text" id="newAccUser" required placeholder="帳號 (例: nurse03)" class="px-2.5 py-2 border border-slate-300 rounded bg-white" />
           <input type="text" id="newAccPass" required placeholder="自設密碼" class="px-2.5 py-2 border border-slate-300 rounded bg-white" />
           <input type="text" id="newAccName" required placeholder="施測者姓名/職稱" class="px-2.5 py-2 border border-slate-300 rounded bg-white" />
           <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold rounded py-2">
-            ➕ 新增帳號
+            ➕ 新增並上雲
           </button>
         </form>
 
@@ -604,7 +618,7 @@
       </div>
       <div class="p-5 space-y-4 text-xs">
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-lg">
-          ✅ 系統已預設綁定您提供的 GAS Web App 網址，每次儲存表單或新增住民皆會自動同步寫入 Google 試算表。
+          ✅ 系統已預設綁定您的最新 GAS Web App 網址，並支援啟動時自動從雲端拉取最新帳號、住民名冊與前後測紀錄。
         </div>
         <div>
           <label class="block font-semibold text-slate-700 mb-1">GAS Web App 部署網址 (/exec)</label>
@@ -615,8 +629,11 @@
           <button type="button" onclick="saveGasUrl()" class="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg">
             儲存網址設定
           </button>
+          <button type="button" onclick="resetDefaultGasUrl()" class="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg">
+            恢復預設網址
+          </button>
           <button type="button" onclick="testGasConnection()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-lg">
-            📡 測試雲端連線
+            📡 測試連線
           </button>
         </div>
         <div id="gasTestResult" class="hidden p-2.5 rounded-lg text-xs font-medium"></div>
@@ -629,17 +646,15 @@
 
   <!-- ================= 7. 核心邏輯與完整 124 位住民資料庫 ================= -->
   <script>
-    // 預設綁定您提供的 GAS Web App 網址
-    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyE5Yi7QljYFVzj8nOnPO7PHY4721MstoStfTREXK0DQgzK4X2vyLBDTQBDQIe8CZY/exec';
+    // 最新預設 GAS Web App 網址
+    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxsjBk4O4iZw0AVRLpBCf__VxqvSGyUMumnJjrLh6mkvPJFzXZcqQz7fFeYDJjRgxbp/exec';
 
-    // 預設帳號密碼清冊（管理者可於登入後自設新增修改）
     const DEFAULT_ACCOUNTS = [
       { username: 'admin', password: 'rainforest123', name: '計畫總管理者', role: 'admin' },
       { username: 'evaluator01', password: '123456', name: 'A/B區 訪視施測員', role: 'evaluator' },
       { username: 'evaluator02', password: '123456', name: 'C/D區 訪視施測員', role: 'evaluator' }
     ];
 
-    // 完整 124 位住民名冊
     const DEFAULT_RESIDENTS = [
       { id: 'RES-001', area: 'A 區', institution: '屏東醫院附設護理之家', seq: 1, name: '王天河', cms: '6', age: 89, idNo: 'R102045217' },
       { id: 'RES-002', area: 'A 區', institution: '屏東醫院附設護理之家', seq: 2, name: '李瑞蘭', cms: '7', age: 82, idNo: 'T200999350' },
@@ -803,7 +818,6 @@
       { id: 'mR', title: 'R. 小腿圍 (CC)', opts: [{ v: 1, t: '1分：≥ 31 cm' }, { v: 0, t: '0分：< 31 cm' }] }
     ];
 
-    // 全域狀態
     let currentUser = null;
     let accounts = [];
     let residents = [];
@@ -811,39 +825,96 @@
     let selectedResidentId = 'RES-001';
     let currentTimepoint = 'pre';
 
-    // 初始化
-    window.addEventListener('DOMContentLoaded', () => {
-      loadStorageData();
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadLocalFallback();
       buildFormDynamicWidgets();
       populateInstitutionOptions();
       renderResidentList();
       selectResident('RES-001');
       document.getElementById('evalDate').valueAsDate = new Date();
+      await syncFromCloud(false);
     });
 
-    function loadStorageData() {
-      const savedAcc = localStorage.getItem('rainforest_accounts_v2');
+    function loadLocalFallback() {
+      const savedAcc = localStorage.getItem('rainforest_accounts_v3');
       accounts = savedAcc ? JSON.parse(savedAcc) : [...DEFAULT_ACCOUNTS];
-      localStorage.setItem('rainforest_accounts_v2', JSON.stringify(accounts));
+      localStorage.setItem('rainforest_accounts_v3', JSON.stringify(accounts));
 
-      const savedRes = localStorage.getItem('rainforest_residents_124');
+      const savedRes = localStorage.getItem('rainforest_residents_124_v3');
       residents = savedRes ? JSON.parse(savedRes) : [...DEFAULT_RESIDENTS];
-      if (!savedRes) localStorage.setItem('rainforest_residents_124', JSON.stringify(residents));
+      if (!savedRes) localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents));
 
-      const savedAss = localStorage.getItem('rainforest_assessments_v2');
+      const savedAss = localStorage.getItem('rainforest_assessments_v3');
       assessments = savedAss ? JSON.parse(savedAss) : {};
 
-      if (!localStorage.getItem('rainforest_gas_url')) {
-        localStorage.setItem('rainforest_gas_url', DEFAULT_GAS_URL);
+      // 強制更新為最新提供的 GAS 網址
+      if (!localStorage.getItem('rainforest_gas_url_v3')) {
+        localStorage.setItem('rainforest_gas_url_v3', DEFAULT_GAS_URL);
       }
-      document.getElementById('gasUrlInput').value = localStorage.getItem('rainforest_gas_url');
+      document.getElementById('gasUrlInput').value = getGasUrl();
     }
 
     function getGasUrl() {
-      return localStorage.getItem('rainforest_gas_url') || DEFAULT_GAS_URL;
+      return localStorage.getItem('rainforest_gas_url_v3') || DEFAULT_GAS_URL;
     }
 
-    // ================= 登入與帳號管理 =================
+    // ================= 雙向同步：從 Google 雲端讀取 (doGet) =================
+    async function syncFromCloud(manualTrigger = false) {
+      const loginNotice = document.getElementById('loginCloudStatusText');
+      if (loginNotice) loginNotice.textContent = '⏳ 正在向 Google 雲端同步最新帳號與紀錄...';
+      if (manualTrigger) showToast('⏳ 正在從 Google 雲端讀取最新資料...');
+
+      try {
+        const res = await fetch(`${getGasUrl()}?action=init&_t=${Date.now()}`);
+        const data = await res.json();
+
+        if (data && data.status === 'ok') {
+          if (Array.isArray(data.accounts) && data.accounts.length > 0) {
+            const hasAdmin = data.accounts.some(a => a.username === 'admin');
+            accounts = hasAdmin ? data.accounts : [DEFAULT_ACCOUNTS[0], ...data.accounts];
+            localStorage.setItem('rainforest_accounts_v3', JSON.stringify(accounts));
+          } else {
+            await syncAccountsToCloud(false);
+          }
+
+          if (Array.isArray(data.residents) && data.residents.length > 0) {
+            residents = data.residents;
+            localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents));
+          }
+
+          if (data.assessments && Object.keys(data.assessments).length > 0) {
+            assessments = { ...assessments, ...data.assessments };
+            localStorage.setItem('rainforest_assessments_v3', JSON.stringify(assessments));
+          }
+
+          populateInstitutionOptions();
+          renderResidentList();
+          const curRes = residents.find(r => r.id === selectedResidentId) || residents[0];
+          if (curRes) loadFormDataForResident(curRes);
+          if (!document.getElementById('accountModal').classList.contains('hidden')) renderAccountTable();
+
+          if (loginNotice) loginNotice.textContent = `✅ 已同步雲端帳號清冊（共 ${accounts.length} 組可用帳號）`;
+          if (manualTrigger) showToast(`✅ 已成功從雲端同步 ${accounts.length} 組帳號、${residents.length} 位住民與最新評估紀錄！`);
+        }
+      } catch (err) {
+        console.warn('雲端讀取失敗，改用本機快取：', err);
+        if (loginNotice) loginNotice.textContent = '⚠️ 離線模式：目前使用本機快取帳號';
+        if (manualTrigger) showToast('⚠️ 無法讀取雲端（請確認 GAS 部署權限設為「所有人」）');
+      }
+    }
+
+    async function syncAccountsToCloud(notify = true) {
+      if (notify) showToast('⏳ 正在將帳號清冊上傳至 Google 雲端...');
+      const ok = await postToGAS({
+        action: 'syncAccounts',
+        accounts: accounts
+      });
+      if (ok && notify) {
+        showToast('✅ 施測者帳號清冊已成功同步至 Google 雲端！');
+      }
+    }
+
+    // ================= 登入與管理者帳號權限管理 =================
     function quickFillLogin(u, p) {
       document.getElementById('loginUsername').value = u;
       document.getElementById('loginPassword').value = p;
@@ -857,7 +928,7 @@
 
       const errBox = document.getElementById('loginError');
       if (!matched) {
-        errBox.textContent = '❌ 帳號或密碼錯誤，請向計畫管理者確認施測者帳號密碼。';
+        errBox.textContent = '❌ 帳號或密碼錯誤。若為管理者剛新增之帳號，請先點擊上方「立即重整」同步雲端清冊。';
         errBox.classList.remove('hidden');
         return;
       }
@@ -902,14 +973,14 @@
             </span>
           </td>
           <td class="p-2.5 text-right space-x-1">
-            <button onclick="changeAccountPass(${idx})" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-[11px]">改密碼</button>
-            ${acc.username !== 'admin' ? `<button onclick="deleteAccount(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[11px]">刪除</button>` : ''}
+            <button type="button" onclick="changeAccountPass(${idx})" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-[11px]">改密碼</button>
+            ${acc.username !== 'admin' ? `<button type="button" onclick="deleteAccount(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[11px]">刪除</button>` : ''}
           </td>
         </tr>
       `).join('');
     }
 
-    document.getElementById('createAccountForm').addEventListener('submit', (e) => {
+    document.getElementById('createAccountForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const username = document.getElementById('newAccUser').value.trim();
       const password = document.getElementById('newAccPass').value.trim();
@@ -919,28 +990,28 @@
         return;
       }
       accounts.push({ username, password, name, role: 'evaluator' });
-      localStorage.setItem('rainforest_accounts_v2', JSON.stringify(accounts));
+      localStorage.setItem('rainforest_accounts_v3', JSON.stringify(accounts));
       e.target.reset();
       renderAccountTable();
-      showToast(`已新增施測者帳號：${name} (${username})`);
+      await syncAccountsToCloud(true);
     });
 
-    function changeAccountPass(idx) {
+    async function changeAccountPass(idx) {
       const newPass = prompt(`請輸入「${accounts[idx].name}」的新密碼：`, accounts[idx].password);
       if (newPass && newPass.trim()) {
         accounts[idx].password = newPass.trim();
-        localStorage.setItem('rainforest_accounts_v2', JSON.stringify(accounts));
+        localStorage.setItem('rainforest_accounts_v3', JSON.stringify(accounts));
         renderAccountTable();
-        showToast('密碼已更新');
+        await syncAccountsToCloud(true);
       }
     }
 
-    function deleteAccount(idx) {
-      if (confirm(`確定要刪除帳號「${accounts[idx].name}」嗎？`)) {
+    async function deleteAccount(idx) {
+      if (confirm(`確定要刪除帳號「${accounts[idx].name}」並同步更新雲端嗎？`)) {
         accounts.splice(idx, 1);
-        localStorage.setItem('rainforest_accounts_v2', JSON.stringify(accounts));
+        localStorage.setItem('rainforest_accounts_v3', JSON.stringify(accounts));
         renderAccountTable();
-        showToast('已刪除該帳號');
+        await syncAccountsToCloud(true);
       }
     }
 
@@ -1032,7 +1103,7 @@
         idNo: document.getElementById('newResIdNo').value.trim()
       };
       residents.push(newRes);
-      localStorage.setItem('rainforest_residents_124', JSON.stringify(residents));
+      localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents));
       populateInstitutionOptions();
       renderResidentList();
       closeModal('addResidentModal');
@@ -1071,7 +1142,7 @@
         }
       });
       if (added.length > 0) {
-        localStorage.setItem('rainforest_residents_124', JSON.stringify(residents));
+        localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents));
         populateInstitutionOptions();
         renderResidentList();
         closeModal('addResidentModal');
@@ -1088,7 +1159,7 @@
     function resetDefaultResidents() {
       if (confirm('確定要將名冊重置為原始 124 位住民名單嗎？')) {
         residents = [...DEFAULT_RESIDENTS];
-        localStorage.setItem('rainforest_residents_124', JSON.stringify(residents));
+        localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents));
         populateInstitutionOptions();
         renderResidentList();
         selectResident('RES-001');
@@ -1166,6 +1237,7 @@
       document.getElementById('dem_marital').value = saved?.dem_marital || '已婚';
       document.getElementById('dem_edu').value = saved?.dem_edu || '國小';
       document.getElementById('dem_religion').value = saved?.dem_religion || '道教';
+      if (saved?.evalDate) document.getElementById('evalDate').value = saved.evalDate;
 
       document.querySelectorAll('input[name="chronic"]').forEach(cb => {
         cb.checked = saved?.chronics ? saved.chronics.includes(cb.value) : false;
@@ -1178,7 +1250,6 @@
         document.getElementById(m.id).value = saved?.mna?.[m.id] ?? m.opts[0].v;
       });
 
-      // 手握力與腳踏車自動帶入前測數值以便比較
       document.getElementById('grip_hand').value = saved?.grip_hand || preSaved?.grip_hand || '優勢手';
       document.getElementById('grip_pre').value = saved?.grip_pre ?? preSaved?.grip_pre ?? '';
       document.getElementById('grip_post').value = saved?.grip_post ?? '';
@@ -1355,7 +1426,7 @@
       };
 
       assessments[`${res.id}_${currentTimepoint}`] = record;
-      localStorage.setItem('rainforest_assessments_v2', JSON.stringify(assessments));
+      localStorage.setItem('rainforest_assessments_v3', JSON.stringify(assessments));
       renderResidentList();
 
       if (uploadToCloud) {
@@ -1363,7 +1434,7 @@
         const ok = await postToGAS({ action: 'saveAssessment', data: record });
         if (ok) {
           document.getElementById('lastSyncTime').textContent = record.updatedAt;
-          showToast(`✅ 「${res.name}」${record.timepointLabel}資料已成功上傳 Google 雲端！`);
+          showToast(`✅ 「${res.name}」${record.timepointLabel}資料已成功上傳並更新對照總表！`);
         }
       } else {
         showToast(`💾 已儲存於本機瀏覽器 (${res.name} - ${record.timepointLabel})`);
@@ -1387,7 +1458,6 @@
     async function postToGAS(payload) {
       const url = getGasUrl();
       try {
-        // 使用 no-cors 模式確保跨網域穩定送出至 Google Apps Script
         await fetch(url, {
           method: 'POST',
           mode: 'no-cors',
@@ -1410,20 +1480,33 @@
     function saveGasUrl() {
       const val = document.getElementById('gasUrlInput').value.trim();
       if (val) {
-        localStorage.setItem('rainforest_gas_url', val);
+        localStorage.setItem('rainforest_gas_url_v3', val);
         showToast('✅ 已更新 GAS 雲端網址');
       }
+    }
+
+    function resetDefaultGasUrl() {
+      localStorage.setItem('rainforest_gas_url_v3', DEFAULT_GAS_URL);
+      document.getElementById('gasUrlInput').value = DEFAULT_GAS_URL;
+      showToast('✅ 已恢復為最新預設 GAS 網址');
     }
 
     async function testGasConnection() {
       const box = document.getElementById('gasTestResult');
       box.classList.remove('hidden');
       box.className = 'p-2.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-800';
-      box.textContent = '⏳ 正在發送測試封包至 Google Apps Script...';
-      const ok = await postToGAS({ action: 'ping', timestamp: new Date().toISOString() });
-      if (ok) {
-        box.className = 'p-2.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800';
-        box.textContent = '✅ 已成功連線至您的 GAS 網址！資料可正常寫入雲端試算表。';
+      box.textContent = '⏳ 正在測試 Google Apps Script 雙向讀取與寫入...';
+      try {
+        const res = await fetch(`${getGasUrl()}?action=getAccounts&_t=${Date.now()}`);
+        const json = await res.json();
+        await postToGAS({ action: 'ping', timestamp: new Date().toISOString() });
+        if (json && json.status === 'ok') {
+          box.className = 'p-2.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800';
+          box.textContent = `✅ 雙向連線成功！雲端目前共有 ${json.accounts.length} 組帳號資料。`;
+        }
+      } catch (e) {
+        box.className = 'p-2.5 rounded-lg text-xs font-medium bg-rose-50 text-rose-800';
+        box.textContent = '❌ 讀取測試失敗，請確認 GAS 部署權限設為「所有人 (Anyone)」並已建立新版本。';
       }
     }
 
@@ -1455,7 +1538,7 @@
       t.textContent = msg;
       t.classList.remove('hidden');
       clearTimeout(window._toastTimer);
-      window._toastTimer = setTimeout(() => t.classList.add('hidden'), 3500);
+      window._toastTimer = setTimeout(() => t.classList.add('hidden'), 3800);
     }
   </script>
 </body>
