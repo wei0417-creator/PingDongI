@@ -747,6 +747,51 @@
               <option value="其他區">其他區</option>
             </select>
           </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">所屬機構名稱 *</label>
+          <input type="text" id="new_org" list="orgSuggestions" required placeholder="請輸入或選擇機構名稱" class="w-full p-2 border border-slate-300 rounded-lg" />
+          <datalist id="orgSuggestions"></datalist>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">性別</label>
+            <select id="new_gender" class="w-full p-2 border border-slate-300 rounded-lg bg-white">
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">實歲</label>
+            <input type="number" id="new_age" placeholder="例: 80" class="w-full p-2 border border-slate-300 rounded-lg" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">CMS 等級</label>
+            <select id="new_cms" class="w-full p-2 border border-slate-300 rounded-lg bg-white">
+              <option value="6">第 6 級</option>
+              <option value="7">第 7 級</option>
+              <option value="8">第 8 級</option>
+              <option value="5">第 5 級</option>
+              <option value="4">第 4 級</option>
+              <option value="3">第 3 級</option>
+              <option value="2">第 2 級</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">身分證/床號</label>
+            <input type="text" id="new_bed" placeholder="選填" class="w-full p-2 border border-slate-300 rounded-lg" />
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeAddResidentModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 font-semibold">取消</button>
+          <button type="button" onclick="submitNewResident()" class="px-4 py-2 rounded-lg bg-rainforest-700 hover:bg-rainforest-800 text-white font-semibold shadow-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> 確認新增住民
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== Evaluator Account Management Modal (Admin Only) ==================== -->
   <div id="accountModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full overflow-hidden border border-slate-200 max-h-[90vh] flex flex-col">
@@ -826,7 +871,7 @@
 
         <div>
           <label class="block font-bold text-slate-700 mb-1">Google Apps Script 網頁應用程式網址 (Web App URL)</label>
-          <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono text-xs" />
+          <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/AKfycbyE5Yi7QljYFVzj8nOnPO7PHY4721MstoStfTREXK0DQgzK4X2vyLBDTQBDQIe8CZY/exec" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono text-xs" />
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -838,23 +883,95 @@
 
         <div class="border-t border-slate-200 pt-3">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="font-bold text-slate-700">Google Apps Script 範例程式碼（貼入試算表 &gt; 擴充功能 &gt; Apps Script）</span>
-            <button type="button" onclick="copyGasScript()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded font-semibold">
-              <i class="fa-regular fa-copy"></i> 複製程式碼
-            </button>
+            <span class="font-bold text-slate-700">Google Apps Script 完整雲端試算表腳本（支援自動建表、分頁管理與資料覆蓋更新）</span>
+            <div class="flex gap-1.5">
+              <button type="button" onclick="testCloudConnection()" class="px-2.5 py-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded font-semibold">
+                <i class="fa-solid fa-plug-circle-check"></i> 測試連線
+              </button>
+              <button type="button" onclick="copyGasScript()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded font-semibold">
+                <i class="fa-regular fa-copy"></i> 複製程式碼
+              </button>
+            </div>
           </div>
-          <textarea id="gasSampleCode" readonly rows="8" class="w-full p-2.5 bg-slate-900 text-emerald-300 font-mono text-[11px] rounded-lg">function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["上傳時間", "施測者", "受試者ID", "區域", "機構", "姓名", "測驗時點", "評估日期", "篩選結果", "巴氏總分", "MNA總分", "手握力(kg)", "腳踏車距離(km)", "完整JSON"]);
+          <textarea id="gasSampleCode" readonly rows="10" class="w-full p-2.5 bg-slate-900 text-emerald-300 font-mono text-[11px] rounded-lg">function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({ status: "ok", message: "屏東雨林計畫 GAS 雲端服務運作正常" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var payload = JSON.parse(e.postData.contents);
+    var action = payload.action || 'assessment';
+
+    if (action === 'resident') {
+      var resSheet = ss.getSheetByName('新增住民名冊') || ss.insertSheet('新增住民名冊');
+      if (resSheet.getLastRow() === 0) {
+        resSheet.appendRow(['建立時間', '受試者ID', '區域', '機構名稱', '姓名', '性別', '實歲', 'CMS等級', '身分證/床號', '建立者']);
+        resSheet.getRange(1, 1, 1, 10).setFontWeight('bold').setBackground('#dcfce7');
+      }
+      resSheet.appendRow([
+        new Date(), payload.id, payload.area, payload.org, payload.name,
+        payload.gender, payload.age, payload.cms, payload.bed, payload.createdBy || ''
+      ]);
+      return ContentService.createTextOutput(JSON.stringify({ status: 'ok', type: 'resident' })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var sheet = ss.getSheetByName('前後測評估明細') || ss.insertSheet('前後測評估明細');
+    var headers = [
+      '最後更新時間', '紀錄鍵值(ID_時點)', '受試者ID', '區域', '機構名稱', '個案姓名', '測驗時點',
+      '評估日期', '施測者簽名', '篩選結果', '實歲', '性別', 'CMS等級', '居住年', '居住月',
+      '慣用語', '婚姻狀況', '教育程度', '宗教信仰', '慢性疾病數', '慢性疾病明細',
+      '巴氏量表總分', '巴氏1_進食', '巴氏2_移動', '巴氏3_衛生', '巴氏4_如廁', '巴氏5_沐浴',
+      '巴氏6_步行', '巴氏7_樓梯', '巴氏8_穿脫', '巴氏9_大便', '巴氏10_小便',
+      'MNA_AF篩選分', 'MNA總分', '手握力手別', '手握力(kg)',
+      '腳踏車時間(分)', '腳踏車阻力', '腳踏車距離(km)',
+      '壓傷發生率', '壓傷備註', '復能參與率', '復能備註', '肺炎發生率', '肺炎備註'
+    ];
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(headers);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#dcfce7');
+      sheet.setFrozenRows(1);
+    }
+
+    var recordKey = payload.residentId + '_' + payload.timepoint;
+    var rowData = [
+      new Date(), recordKey, payload.residentId, payload.area, payload.org, payload.name,
+      payload.timepoint === 'pre' ? '前測' : '後測', payload.evalDate, payload.evaluator,
+      payload.screeningPass ? '符合收案' : '不符合', payload.b_age, payload.b_gender, payload.b_cms,
+      payload.b_stayYear, payload.b_stayMonth, payload.b_lang, payload.b_marital, payload.b_edu,
+      payload.b_religion + (payload.b_religionOther ? '(' + payload.b_religionOther + ')' : ''),
+      (payload.chronics || []).length, (payload.chronics || []).join('、') + (payload.b_chronicOther ? '；' + payload.b_chronicOther : ''),
+      payload.barthelTotal, payload.b1, payload.b2, payload.b3, payload.b4, payload.b5,
+      payload.b6, payload.b7, payload.b8, payload.b9, payload.b10,
+      payload.mnaScreenScore, payload.mnaTotal, payload.grip_hand, payload.gripVal,
+      payload.bike_time, payload.bike_res, payload.bikeDist,
+      payload.rec_pressure, payload.rec_pressureNote, payload.rec_rehab, payload.rec_rehabNote,
+      payload.rec_pneumonia, payload.rec_pneumoniaNote
+    ];
+
+    var lastRow = sheet.getLastRow();
+    var targetRow = -1;
+    if (lastRow > 1) {
+      var keys = sheet.getRange(2, 2, lastRow - 1, 1).getValues();
+      for (var i = 0; i < keys.length; i++) {
+        if (keys[i][0] === recordKey) {
+          targetRow = i + 2;
+          break;
+        }
+      }
+    }
+    if (targetRow > 0) {
+      sheet.getRange(targetRow, 1, 1, rowData.length).setValues([rowData]);
+    } else {
+      sheet.appendRow(rowData);
+    }
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok', key: recordKey })).setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
   }
-  sheet.appendRow([
-    new Date(), data.evaluator, data.residentId, data.area, data.org, data.name,
-    data.timepoint === 'pre' ? '前測' : '後測', data.evalDate, data.screeningPass ? '符合' : '不符合',
-    data.barthelTotal, data.mnaTotal, data.gripVal, data.bikeDist, JSON.stringify(data)
-  ]);
-  return ContentService.createTextOutput(JSON.stringify({status: "ok"})).setMimeType(ContentService.MimeType.JSON);
 }</textarea>
         </div>
       </div>
@@ -1482,6 +1599,21 @@
       const nextNum = residents.length + 1;
       document.getElementById('new_id').value = `RES-${String(nextNum).padStart(3, '0')}`;
       document.getElementById('new_name').value = '';
+      document.getElementById('new_age').value = '';
+      document.getElementById('new_bed').value = '';
+
+      const currentArea = document.getElementById('filterArea')?.value;
+      if (currentArea) document.getElementById('new_area').value = currentArea;
+
+      const currentOrg = document.getElementById('filterInstitution')?.value || '';
+      document.getElementById('new_org').value = currentOrg;
+
+      const datalist = document.getElementById('orgSuggestions');
+      if (datalist) {
+        const orgs = Array.from(new Set(residents.map(r => r.org)));
+        datalist.innerHTML = orgs.map(o => `<option value="${o}">`).join('');
+      }
+
       document.getElementById('addResidentModal').classList.remove('hidden');
     }
 
@@ -1518,6 +1650,10 @@
       closeAddResidentModal();
       selectResident(id);
       showToast(`已成功新增住民：${name}`, 'success');
+
+      if (gasUrl) {
+        pushToGoogleSheet({ action: 'resident', createdBy: currentUser || '', ...newObj });
+      }
     }
 
     /* ==========================================================================
@@ -1869,7 +2005,7 @@
       showToast(`已儲存 ${activeResident.name} 的「${label}」紀錄！`, 'success');
 
       if (gasUrl) {
-        pushToGoogleSheet(record);
+        pushToGoogleSheet({ action: 'assessment', ...record });
       }
     }
 
@@ -1891,6 +2027,26 @@
       showToast(gasUrl ? '已儲存 Google 雲端試算表網址' : '已切換為純本機模式', 'success');
     }
 
+    async function testCloudConnection() {
+      const urlToTest = document.getElementById('gasUrlInput').value.trim() || gasUrl;
+      if (!urlToTest) {
+        showToast('請先輸入 Google Apps Script 網址', 'error');
+        return;
+      }
+      try {
+        showToast('正在測試雲端試算表連線...', 'info');
+        const res = await fetch(urlToTest, { method: 'GET' });
+        const json = await res.json();
+        if (json && json.status === 'ok') {
+          showToast('連線成功！' + (json.message || '雲端試算表已就緒'), 'success');
+        } else {
+          showToast('已收到回應，請確認部署權限設為「所有人」', 'info');
+        }
+      } catch (err) {
+        showToast('連線測試失敗，請確認網址正確且已部署為「所有人」可存取', 'error');
+      }
+    }
+
     function updateCloudStatusBadge() {
       const btn = document.getElementById('cloudStatusBtn');
       const dot = document.getElementById('cloudDot');
@@ -1906,16 +2062,16 @@
       }
     }
 
-    async function pushToGoogleSheet(record) {
+    async function pushToGoogleSheet(payload) {
       if (!gasUrl) return;
       try {
         await fetch(gasUrl, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(record)
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
         });
-        showToast('已同步傳送至 Google 雲端試算表', 'info');
+        showToast(payload.action === 'resident' ? '新增住民已同步至雲端試算表' : '評估數據已同步至 Google 雲端試算表', 'info');
       } catch (err) {
         showToast('雲端傳送失敗，資料已安全保留於本機', 'error');
       }
@@ -1932,7 +2088,7 @@
         return;
       }
       for (const k of keys) {
-        await pushToGoogleSheet(assessments[k]);
+        await pushToGoogleSheet({ action: 'assessment', ...assessments[k] });
       }
       showToast(`已完成 ${keys.length} 筆評估紀錄雲端批次上傳！`, 'success');
     }
