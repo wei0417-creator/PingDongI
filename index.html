@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>屏東智慧雨林計畫｜個案評估與前後測數據管理平台</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '"Noto Sans TC"', 'sans-serif'],
+          },
+          colors: {
+            rainforest: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- ==================== Toast Notification ==================== -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ==================== Login Overlay ==================== -->
+  <div id="loginOverlay" class="fixed inset-0 z-40 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-gradient-to-r from-rainforest-800 to-rainforest-600 p-6 text-white text-center">
+        <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-md">
+          <i class="fa-solid fa-leaf text-2xl text-white"></i>
+        </div>
+        <h1 class="text-xl font-bold tracking-wide">屏東智慧雨林計畫</h1>
+        <p class="text-rainforest-100 text-xs mt-1">個案評估工具與前後測雲端數據管理系統（完整124位名冊版）</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">施測者帳號／姓名</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+              <i class="fa-solid fa-user"></i>
+            </span>
+            <input type="text" id="loginUser" required placeholder="請輸入施測人員帳號或姓名"
+              class="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-rainforest-600 focus:border-rainforest-600 outline-none transition" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">登入密碼</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input type="password" id="loginPass" required placeholder="請輸入密碼"
+              class="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-rainforest-600 focus:border-rainforest-600 outline-none transition" />
+          </div>
+        </div>
+
+        <button type="submit"
+          class="w-full py-2.5 px-4 bg-rainforest-700 hover:bg-rainforest-800 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition duration-150 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-right-to-bracket"></i> 登入施測系統
+        </button>
+
+        <!-- Quick Demo Login Presets -->
+        <div class="pt-3 border-t border-slate-100">
+          <p class="text-xs text-slate-500 text-center mb-2">預設帳號提示（登入後可由管理者自設／修改帳密）</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="quickFillLogin('admin', 'rainforest123')"
+              class="py-1.5 px-2.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-user-shield text-rainforest-700"></i> 管理者 (admin)
+            </button>
+            <button type="button" onclick="quickFillLogin('evaluator01', '123456')"
+              class="py-1.5 px-2.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-user-nurse text-blue-600"></i> 訪視員 (evaluator01)
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== Top Navigation Header ==================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-rainforest-700 text-white flex items-center justify-center shadow-sm">
+          <i class="fa-solid fa-seedling"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">屏東智慧雨林計畫</h1>
+          <p class="text-[11px] text-slate-500 hidden sm:block">個案篩選・巴氏量表・MNA營養・握力與耐力前後測平台</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Cloud Status Indicator -->
+        <button onclick="openCloudModal()" id="cloudStatusBtn"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition">
+          <span id="cloudDot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span id="cloudStatusText" class="hidden md:inline">本機離線儲存</span>
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+        </button>
+
+        <!-- Evaluator Info -->
+        <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+          <i class="fa-solid fa-id-badge text-rainforest-700 text-xs"></i>
+          <span id="currentEvaluatorDisplay" class="text-xs font-semibold text-slate-700">未登入</span>
+        </div>
+
+        <!-- Logout -->
+        <button onclick="handleLogout()" title="登出系統"
+          class="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== Main Content Container ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Top Summary & Quick Actions Bar -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div>
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-users text-rainforest-700"></i>
+            受試者住民名冊與測驗進度總覽
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">已內建全名冊 124 位長輩（A~D 區共 24 家機構），支援點選施測或手動新增受試者。</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnManageAccounts" onclick="openAccountModal()" class="hidden px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-users-gear"></i> 施測者帳號管理
+          </button>
+          <button onclick="openAddResidentModal()" class="px-3 py-2 bg-rainforest-700 hover:bg-rainforest-800 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-user-plus"></i> 手動新增住民
+          </button>
+          <button onclick="resetDefaultRoster()" class="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5" title="重新載入124位預設名冊">
+            <i class="fa-solid fa-arrows-rotate"></i> 重置預設名冊 (124位)
+          </button>
+          <button onclick="openCloudModal()" class="px-3 py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-gear"></i> 雲端試算表設定
+          </button>
+          <button onclick="exportAllCSV()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-file-csv"></i> 匯出完整 CSV 報表
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Stats -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4">
+        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/80">
+          <div class="text-xs text-slate-500 font-medium">在冊受試者總數</div>
+          <div id="statTotal" class="text-2xl font-bold text-slate-800 mt-1">124</div>
+        </div>
+        <div class="bg-blue-50/70 rounded-xl p-3 border border-blue-200/80">
+          <div class="text-xs text-blue-600 font-medium">已完成「前測」人數</div>
+          <div id="statPreCount" class="text-2xl font-bold text-blue-700 mt-1">0</div>
+        </div>
+        <div class="bg-emerald-50/70 rounded-xl p-3 border border-emerald-200/80">
+          <div class="text-xs text-emerald-600 font-medium">已完成「後測」人數</div>
+          <div id="statPostCount" class="text-2xl font-bold text-emerald-700 mt-1">0</div>
+        </div>
+        <div class="bg-purple-50/70 rounded-xl p-3 border border-purple-200/80">
+          <div class="text-xs text-purple-600 font-medium">前後測皆完成配對</div>
+          <div id="statBothCount" class="text-2xl font-bold text-purple-700 mt-1">0</div>
+        </div>
+      </div>
+
+      <!-- Filter & Search Controls -->
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-700">篩選名冊：</span>
+            <span id="filteredCountBadge" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-rainforest-100 text-rainforest-800">124 位</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Filter by Area -->
+            <select id="filterArea" onchange="onAreaFilterChange()" class="px-2.5 py-1.5 text-xs border rounded-lg bg-white border-slate-300 focus:outline-none focus:ring-1 focus:ring-rainforest-600">
+              <option value="">全部區域 (A~D區)</option>
+              <option value="A 區">A 區</option>
+              <option value="B 區">B 區</option>
+              <option value="C 區">C 區</option>
+              <option value="D 區">D 區</option>
+            </select>
+
+            <!-- Filter by Institution -->
+            <select id="filterInstitution" onchange="renderResidentList()" class="px-2.5 py-1.5 text-xs border rounded-lg bg-white border-slate-300 focus:outline-none focus:ring-1 focus:ring-rainforest-600">
+              <option value="">全部機構 (不限)</option>
+            </select>
+
+            <!-- Search box -->
+            <div class="relative">
+              <input type="text" id="filterKeyword" oninput="renderResidentList()" placeholder="搜尋姓名 / ID / 身分證..."
+                class="pl-7 pr-3 py-1.5 text-xs border rounded-lg border-slate-300 focus:outline-none focus:ring-1 focus:ring-rainforest-600 w-44 sm:w-56">
+              <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-xs"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resident Table -->
+        <div class="overflow-x-auto max-h-80 overflow-y-auto bg-white rounded-lg border border-slate-200">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-100 text-slate-600 sticky top-0 z-10 font-semibold uppercase tracking-wider">
+              <tr>
+                <th class="p-3">編號/區域</th>
+                <th class="p-3">所屬機構</th>
+                <th class="p-3">姓名 / 身分證</th>
+                <th class="p-3">實歲</th>
+                <th class="p-3">CMS等級</th>
+                <th class="p-3 text-center">前測狀態</th>
+                <th class="p-3 text-center">後測狀態</th>
+                <th class="p-3 text-center">操作</th>
+              </tr>
+            </thead>
+            <tbody id="residentTableBody" class="divide-y divide-slate-200">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== Assessment Form Section ==================== -->
+    <section id="assessmentSection" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <!-- Active Resident Banner -->
+      <div class="bg-slate-800 text-white p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 text-xs text-slate-300 mb-1">
+            <span id="activeResId" class="px-2 py-0.5 bg-slate-700 rounded font-mono">RES-001</span>
+            <span id="activeResArea" class="px-2 py-0.5 bg-rainforest-700 text-white rounded">A 區</span>
+            <span id="activeResOrg">屏東醫院附設護理之家</span>
+          </div>
+          <h2 class="text-xl font-bold flex items-center gap-2">
+            <span id="activeResName">王天河</span>
+            <span id="activeResMeta" class="text-sm font-normal text-slate-300">（男・89歲・CMS第6級）</span>
+          </h2>
+        </div>
+
+        <!-- Timepoint Switcher (Pre vs Post) -->
+        <div class="flex flex-wrap items-center gap-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-700">
+          <button type="button" id="btnModePre" onclick="switchTimepoint('pre')"
+            class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-blue-600 text-white shadow">
+            <i class="fa-solid fa-1"></i> 前測紀錄 (Pre-test)
+          </button>
+          <button type="button" id="btnModePost" onclick="switchTimepoint('post')"
+            class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white">
+            <i class="fa-solid fa-2"></i> 後測紀錄 (Post-test)
+          </button>
+        </div>
+      </div>
+
+      <!-- Form Body -->
+      <form id="assessmentForm" onsubmit="saveCurrentAssessment(event)" class="p-4 sm:p-6 space-y-8">
+        <!-- Metadata Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">研究地點（機構名稱）</label>
+            <input type="text" id="f_location" class="w-full p-2 text-sm border border-slate-300 rounded-lg bg-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">評估日期</label>
+            <input type="date" id="f_evalDate" required class="w-full p-2 text-sm border border-slate-300 rounded-lg bg-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">評估者／施測人員簽名</label>
+            <input type="text" id="f_evaluator" required class="w-full p-2 text-sm border border-slate-300 rounded-lg bg-slate-100 font-semibold text-slate-700" />
+          </div>
+        </div>
+
+        <!-- Section 1: 個案篩選 -->
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rainforest-700 text-white text-xs flex items-center justify-center">一</span>
+              個案篩選（納入與排除條件）
+            </h3>
+            <span id="screeningResultBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+              <i class="fa-solid fa-circle-check"></i> 符合收案條件
+            </span>
+          </div>
+
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-100 text-slate-700 font-semibold">
+                <tr>
+                  <th class="p-2.5 w-16">類別</th>
+                  <th class="p-2.5">篩選項目</th>
+                  <th class="p-2.5 w-44">判定</th>
+                  <th class="p-2.5 w-48">備註</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                <tr>
+                  <td class="p-2.5 font-semibold text-blue-700">納入</td>
+                  <td class="p-2.5">1. 是否為 65 歲以上？</td>
+                  <td class="p-2.5">
+                    <select id="scr_q1" onchange="evaluateScreening()" class="p-1.5 border rounded bg-white w-full">
+                      <option value="yes">是</option>
+                      <option value="no">否（排除）</option>
+                    </select>
+                  </td>
+                  <td class="p-2.5"><input type="text" id="scr_n1" placeholder="備註..." class="w-full p-1 border rounded" /></td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-blue-700">納入</td>
+                  <td class="p-2.5">2. 是否為 CMS 第 6–7 級？</td>
+                  <td class="p-2.5">
+                    <select id="scr_q2" onchange="evaluateScreening()" class="p-1.5 border rounded bg-white w-full">
+                      <option value="yes">是</option>
+                      <option value="no">否（排除）</option>
+                    </select>
+                  </td>
+                  <td class="p-2.5"><input type="text" id="scr_n2" placeholder="備註..." class="w-full p-1 border rounded" /></td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-rose-700">排除</td>
+                  <td class="p-2.5">3. 是否有脊髓損傷？</td>
+                  <td class="p-2.5">
+                    <select id="scr_q3" onchange="evaluateScreening()" class="p-1.5 border rounded bg-white w-full">
+                      <option value="no">否</option>
+                      <option value="yes">是（排除）</option>
+                    </select>
+                  </td>
+                  <td class="p-2.5"><input type="text" id="scr_n3" placeholder="備註..." class="w-full p-1 border rounded" /></td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-rose-700">排除</td>
+                  <td class="p-2.5">4. 是否有肌肉骨骼疾病？</td>
+                  <td class="p-2.5">
+                    <select id="scr_q4" onchange="evaluateScreening()" class="p-1.5 border rounded bg-white w-full">
+                      <option value="no">否</option>
+                      <option value="yes">是（排除）</option>
+                    </select>
+                  </td>
+                  <td class="p-2.5"><input type="text" id="scr_n4" placeholder="備註..." class="w-full p-1 border rounded" /></td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-rose-700">排除</td>
+                  <td class="p-2.5">5. 是否經評估有參與風險？</td>
+                  <td class="p-2.5">
+                    <select id="scr_q5" onchange="evaluateScreening()" class="p-1.5 border rounded bg-white w-full">
+                      <option value="no">否</option>
+                      <option value="yes">是（排除）</option>
+                    </select>
+                  </td>
+                  <td class="p-2.5"><input type="text" id="scr_n5" placeholder="備註..." class="w-full p-1 border rounded" /></td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-rose-700">排除</td>
+                  <td class="p-2.5">6. 是否有嚴重心肺疾病？</td>
+                  <td class="p-2.5">
+                    <select id="scr_q6" onchange="evaluateScreening()" class="p-1.5 border rounded bg-white w-full">
+                      <option value="no">否</option>
+                      <option value="yes">是（排除）</option>
+                    </select>
+                  </td>
+                  <td class="p-2.5"><input type="text" id="scr_n6" placeholder="備註..." class="w-full p-1 border rounded" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 2: 個人基本資料 -->
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
+            <span class="w-6 h-6 rounded-full bg-rainforest-700 text-white text-xs flex items-center justify-center">二</span>
+            個人基本資料
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">1. 出生年月日（民國）</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="b_rocYear" placeholder="年" class="w-16 p-2 border rounded-lg" />
+                <span>年</span>
+                <input type="number" id="b_month" placeholder="月" class="w-14 p-2 border rounded-lg" />
+                <span>月</span>
+                <input type="number" id="b_day" placeholder="日" class="w-14 p-2 border rounded-lg" />
+                <span>日</span>
+              </div>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">實歲（歲）</label>
+              <input type="number" id="b_age" class="w-full p-2 border rounded-lg" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">2. 性別</label>
+              <select id="b_gender" class="w-full p-2 border rounded-lg bg-white">
+                <option value="男">男</option>
+                <option value="女">女</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">4. CMS 等級</label>
+              <select id="b_cms" onchange="recalcKPIs()" class="w-full p-2 border rounded-lg bg-white">
+                <option value="6">第 6 級</option>
+                <option value="7">第 7 級</option>
+                <option value="8">第 8 級</option>
+                <option value="5">第 5 級</option>
+                <option value="4">第 4 級</option>
+                <option value="3">第 3 級</option>
+                <option value="2">第 2 級</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">3. 在此機構之居住時間</label>
+              <div class="flex items-center gap-1.5">
+                <input type="number" id="b_stayYear" placeholder="0" class="w-16 p-2 border rounded-lg" />
+                <span>年</span>
+                <input type="number" id="b_stayMonth" placeholder="0" class="w-16 p-2 border rounded-lg" />
+                <span>月</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">5. 慣用語</label>
+              <select id="b_lang" class="w-full p-2 border rounded-lg bg-white">
+                <option value="國語">國語</option>
+                <option value="台語">台語</option>
+                <option value="客語">客語</option>
+                <option value="原住民語/其他">原住民語/其他</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">6. 婚姻狀況</label>
+              <select id="b_marital" class="w-full p-2 border rounded-lg bg-white">
+                <option value="未婚">未婚</option>
+                <option value="已婚">已婚</option>
+                <option value="喪偶">喪偶</option>
+                <option value="離異">離異</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">7. 教育程度</label>
+              <select id="b_edu" class="w-full p-2 border rounded-lg bg-white">
+                <option value="不識字">不識字</option>
+                <option value="識字（自修、私塾）">識字（自修、私塾）</option>
+                <option value="國小">國小</option>
+                <option value="國中（初中）">國中（初中）</option>
+                <option value="高中職">高中職</option>
+                <option value="專科（二、三、五專）">專科（二、三、五專）</option>
+                <option value="大學">大學</option>
+                <option value="碩士">碩士</option>
+                <option value="博士">博士</option>
+              </select>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block font-semibold text-slate-600 mb-1">8. 宗教信仰</label>
+              <div class="flex gap-2">
+                <select id="b_religion" class="w-40 p-2 border rounded-lg bg-white">
+                  <option value="無">無</option>
+                  <option value="佛教">佛教</option>
+                  <option value="道教">道教</option>
+                  <option value="基督教">基督教</option>
+                  <option value="天主教">天主教</option>
+                  <option value="其他">其他</option>
+                </select>
+                <input type="text" id="b_religionOther" placeholder="若選其他請填寫..." class="flex-1 p-2 border rounded-lg" />
+              </div>
+            </div>
+
+            <div class="sm:col-span-4 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="font-semibold text-slate-700">9. 慢性疾病（可複選）</label>
+                <span id="chronicCountBadge" class="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold">共 0 種</span>
+              </div>
+              <div id="chronicCheckboxes" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-1">
+                <!-- Populated via JS -->
+              </div>
+              <div class="pt-1">
+                <input type="text" id="b_chronicOther" placeholder="其他慢性疾病補充說明..." class="w-full p-2 border rounded-lg bg-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: 研究指標前後測即時對照總覽 -->
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
+            <span class="w-6 h-6 rounded-full bg-rainforest-700 text-white text-xs flex items-center justify-center">三</span>
+            研究指標前後測總覽（即時對照）
+          </h3>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-100 text-slate-700 font-semibold">
+                <tr>
+                  <th class="p-2.5">研究指標項目</th>
+                  <th class="p-2.5 text-center">前測 (Pre-test) 紀錄</th>
+                  <th class="p-2.5 text-center">後測 (Post-test) 紀錄</th>
+                  <th class="p-2.5 text-center">進步幅度／狀態</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 bg-white">
+                <tr>
+                  <td class="p-2.5 font-semibold text-slate-800">1. 巴氏量表（Barthel Index）</td>
+                  <td id="ov_barthel_pre" class="p-2.5 text-center font-mono text-blue-700">--</td>
+                  <td id="ov_barthel_post" class="p-2.5 text-center font-mono text-emerald-700">--</td>
+                  <td id="ov_barthel_diff" class="p-2.5 text-center text-slate-500">--</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-slate-800">2. 手握力 (kg)</td>
+                  <td id="ov_grip_pre" class="p-2.5 text-center font-mono text-blue-700">--</td>
+                  <td id="ov_grip_post" class="p-2.5 text-center font-mono text-emerald-700">--</td>
+                  <td id="ov_grip_diff" class="p-2.5 text-center text-slate-500">--</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-slate-800">3. MNA 營養評估總分</td>
+                  <td id="ov_mna_pre" class="p-2.5 text-center font-mono text-blue-700">--</td>
+                  <td id="ov_mna_post" class="p-2.5 text-center font-mono text-emerald-700">--</td>
+                  <td id="ov_mna_diff" class="p-2.5 text-center text-slate-500">--</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-slate-800">4. 有氧耐力騎乘距離 (km)</td>
+                  <td id="ov_bike_pre" class="p-2.5 text-center font-mono text-blue-700">--</td>
+                  <td id="ov_bike_post" class="p-2.5 text-center font-mono text-emerald-700">--</td>
+                  <td id="ov_bike_diff" class="p-2.5 text-center text-slate-500">--</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-slate-800">5. CMS 等級</td>
+                  <td id="ov_cms_pre" class="p-2.5 text-center font-mono text-blue-700">--</td>
+                  <td id="ov_cms_post" class="p-2.5 text-center font-mono text-emerald-700">--</td>
+                  <td id="ov_cms_diff" class="p-2.5 text-center text-slate-500">--</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-slate-800">6. 壓傷發生率</td>
+                  <td id="ov_pressure_pre" class="p-2.5 text-center text-blue-700">--</td>
+                  <td id="ov_pressure_post" class="p-2.5 text-center text-emerald-700">--</td>
+                  <td class="p-2.5 text-center text-slate-400">醫護紀錄</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-slate-800">7. 復能參與率</td>
+                  <td id="ov_rehab_pre" class="p-2.5 text-center text-blue-700">--</td>
+                  <td id="ov_rehab_post" class="p-2.5 text-center text-emerald-700">--</td>
+                  <td class="p-2.5 text-center text-slate-400">復能／活動紀錄</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-semibold text-slate-800">8. 肺炎發生率</td>
+                  <td id="ov_pneumonia_pre" class="p-2.5 text-center text-blue-700">--</td>
+                  <td id="ov_pneumonia_post" class="p-2.5 text-center text-emerald-700">--</td>
+                  <td class="p-2.5 text-center text-slate-400">醫護紀錄</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 4: 巴氏量表（Barthel Index） -->
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rainforest-700 text-white text-xs flex items-center justify-center">四</span>
+              巴氏量表（Barthel Index）
+            </h3>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-500">總計得分：</span>
+              <span id="barthelTotalBadge" class="px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800">0 分（完全依賴）</span>
+            </div>
+          </div>
+          <div id="barthelContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <!-- Dynamically Populated -->
+          </div>
+        </div>
+
+        <!-- Section 5: MNA 營養評估 -->
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rainforest-700 text-white text-xs flex items-center justify-center">五</span>
+              MNA 迷你營養評估（A–F 篩選 + G–R 深入評估）
+            </h3>
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span id="mnaScreenBadge" class="px-2.5 py-1 rounded-full font-bold bg-slate-100 text-slate-700">A-F 篩選：0 分</span>
+              <span id="mnaTotalBadge" class="px-3 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800">總分：0 / 30 分</span>
+            </div>
+          </div>
+          <div id="mnaContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <!-- Dynamically Populated -->
+          </div>
+        </div>
+
+        <!-- Section 6: 手握力與有氧耐力（含前後測進步率自動計算） -->
+        <div class="space-y-4">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
+            <span class="w-6 h-6 rounded-full bg-rainforest-700 text-white text-xs flex items-center justify-center">六</span>
+            手握力與有氧耐力（自動比對前後測並計算達標率）
+          </h3>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- 6-1 手握力 -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-slate-800">6-1 手握力測試 (kg)</h4>
+                <span id="gripTargetBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">待計算（達標 ≥ 10%）</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="block font-semibold text-slate-600 mb-1">測量手別</label>
+                  <select id="grip_hand" class="w-full p-2 border rounded-lg bg-white">
+                    <option value="優勢手">優勢手</option>
+                    <option value="指定手">指定手</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-600 mb-1">本次量測平均握力 (kg)</label>
+                  <input type="number" step="0.1" id="grip_val" oninput="recalcKPIs()" placeholder="例: 12.5" class="w-full p-2 border rounded-lg bg-white font-bold text-slate-800" />
+                </div>
+              </div>
+              <div class="p-2.5 rounded-lg bg-white border border-slate-200 text-xs flex items-center justify-between">
+                <span>前測：<strong id="dispGripPre">--</strong> kg ｜ 後測：<strong id="dispGripPost">--</strong> kg</span>
+                <span>增加率：<strong id="dispGripRate" class="text-blue-700">--%</strong></span>
+              </div>
+            </div>
+
+            <!-- 6-2 有氧耐力 -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-slate-800">6-2 有氧耐力（腳踏車騎乘距離）</h4>
+                <span id="bikeTargetBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">待計算（達標 ≥ 15%）</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <label class="block font-semibold text-slate-600 mb-1">測試時間(分)</label>
+                  <input type="number" id="bike_time" value="5" class="w-full p-2 border rounded-lg bg-white" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-600 mb-1">阻力等級</label>
+                  <input type="number" id="bike_res" value="1" class="w-full p-2 border rounded-lg bg-white" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-600 mb-1">本次騎乘距離(km)</label>
+                  <input type="number" step="0.001" id="bike_dist" oninput="recalcKPIs()" placeholder="例: 0.125" class="w-full p-2 border rounded-lg bg-white font-bold text-slate-800" />
+                </div>
+              </div>
+              <div class="p-2.5 rounded-lg bg-white border border-slate-200 text-xs flex items-center justify-between">
+                <span>前測：<strong id="dispBikePre">--</strong> km ｜ 後測：<strong id="dispBikePost">--</strong> km</span>
+                <span>進步率：<strong id="dispBikeRate" class="text-emerald-700">--%</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 7: 壓傷發生率、復能參與率、肺炎發生率紀錄 -->
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
+            <span class="w-6 h-6 rounded-full bg-rainforest-700 text-white text-xs flex items-center justify-center">七</span>
+            壓傷發生率、復能參與率、肺炎發生率紀錄
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-white space-y-2">
+              <div class="font-bold text-slate-800">1. 壓傷發生率（醫護紀錄）</div>
+              <input type="text" id="rec_pressure" oninput="recalcKPIs()" placeholder="輸入數值或發生次數/狀態..." class="w-full p-2 border rounded-lg" />
+              <input type="text" id="rec_pressureNote" placeholder="備註說明..." class="w-full p-1.5 border rounded-lg bg-slate-50" />
+            </div>
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-white space-y-2">
+              <div class="font-bold text-slate-800">2. 復能參與率（復能／活動紀錄）</div>
+              <input type="text" id="rec_rehab" oninput="recalcKPIs()" placeholder="例：85% 或 12/14次..." class="w-full p-2 border rounded-lg" />
+              <input type="text" id="rec_rehabNote" placeholder="備註說明..." class="w-full p-1.5 border rounded-lg bg-slate-50" />
+            </div>
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-white space-y-2">
+              <div class="font-bold text-slate-800">3. 肺炎發生率（醫護紀錄）</div>
+              <input type="text" id="rec_pneumonia" oninput="recalcKPIs()" placeholder="輸入數值或有無發生..." class="w-full p-2 border rounded-lg" />
+              <input type="text" id="rec_pneumoniaNote" placeholder="備註說明..." class="w-full p-1.5 border rounded-lg bg-slate-50" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit & Sync Actions -->
+        <div class="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-end gap-3">
+          <button type="button" onclick="closeAssessmentPanel()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition">
+            收合評估表單
+          </button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-rainforest-700 hover:bg-rainforest-800 text-white text-sm font-bold shadow-md hover:shadow-lg transition flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> 儲存本次評估紀錄並同步雲端
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- ==================== Add Resident Modal ==================== -->
+  <div id="addResidentModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
+      <div class="px-5 py-4 bg-slate-800 text-white flex items-center justify-between">
+        <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> 手動新增受試住民</h3>
+        <button onclick="closeAddResidentModal()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">住民姓名 *</label>
+          <input type="text" id="new_name" required placeholder="請輸入長輩真實姓名" class="w-full p-2 border border-slate-300 rounded-lg" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">受試者編號 (ID) *</label>
+            <input type="text" id="new_id" required placeholder="如：RES-125" class="w-full p-2 border border-slate-300 rounded-lg" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">所屬區域 *</label>
+            <select id="new_area" class="w-full p-2 border border-slate-300 rounded-lg bg-white">
+              <option value="A 區">A 區</option>
+              <option value="B 區">B 區</option>
+              <option value="C 區">C 區</option>
+              <option value="D 區">D 區</option>
+              <option value="其他區">其他區</option>
+            </select>
+          </div>
+  <!-- ==================== Evaluator Account Management Modal (Admin Only) ==================== -->
+  <div id="accountModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full overflow-hidden border border-slate-200 max-h-[90vh] flex flex-col">
+      <div class="px-5 py-4 bg-indigo-900 text-white flex items-center justify-between">
+        <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-users-gear"></i> 管理者專區：施測者帳號與密碼設定</h3>
+        <button onclick="closeAccountModal()" class="text-indigo-200 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-5 space-y-4 text-xs overflow-y-auto">
+        <!-- Create / Update Account Form -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+          <div class="font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="fa-solid fa-user-plus text-indigo-600"></i> 新增施測者帳號（或輸入現有帳號以重設密碼）
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">登入帳號 *</label>
+              <input type="text" id="acc_username" placeholder="例: nurse_lin" class="w-full p-2 border border-slate-300 rounded-lg bg-white" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">設定密碼 *</label>
+              <input type="text" id="acc_password" placeholder="設定登入密碼" class="w-full p-2 border border-slate-300 rounded-lg bg-white" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">施測者真實姓名 *</label>
+              <input type="text" id="acc_displayName" placeholder="例: 林護理師" class="w-full p-2 border border-slate-300 rounded-lg bg-white" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">角色權限</label>
+              <select id="acc_role" class="w-full p-2 border border-slate-300 rounded-lg bg-white">
+                <option value="evaluator">一般施測者</option>
+                <option value="admin">系統管理者</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button type="button" onclick="saveEvaluatorAccount()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-xs transition">
+              <i class="fa-solid fa-check"></i> 新增／更新帳號
+            </button>
+          </div>
+        </div>
+
+        <!-- Existing Accounts Table -->
+        <div>
+          <div class="font-bold text-slate-700 mb-2">目前有效施測者帳號清單</div>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-100 text-slate-600 font-semibold">
+                <tr>
+                  <th class="p-2.5">登入帳號</th>
+                  <th class="p-2.5">施測者姓名（簽名顯示）</th>
+                  <th class="p-2.5">登入密碼</th>
+                  <th class="p-2.5">權限角色</th>
+                  <th class="p-2.5 text-center">操作</th>
+                </tr>
+              </thead>
+              <tbody id="accountTableBody" class="divide-y divide-slate-200 bg-white">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Google Cloud Storage Setup Modal ==================== -->
+  <div id="cloudModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full overflow-hidden border border-slate-200 max-h-[90vh] flex flex-col">
+      <div class="px-5 py-4 bg-slate-800 text-white flex items-center justify-between">
+        <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-brands fa-google"></i> Google 線上雲端試算表 (Google Sheets) 儲存設定</h3>
+        <button onclick="closeCloudModal()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-5 space-y-4 text-xs overflow-y-auto">
+        <div class="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 leading-relaxed">
+          <strong>運作說明：</strong>本系統預設將所有評估資料即時安全儲存於瀏覽器本機空間；若需多人跨裝置同步至 <strong>Google 雲端試算表</strong>，只需在您的 Google 試算表貼上下方 Apps Script 並部署為「網頁應用程式」（存取權設為「所有人」），再將網址貼回此處即可。
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Google Apps Script 網頁應用程式網址 (Web App URL)</label>
+          <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono text-xs" />
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="saveGasUrl()" class="px-4 py-2 bg-rainforest-700 hover:bg-rainforest-800 text-white font-semibold rounded-lg">儲存雲端網址</button>
+          <button type="button" onclick="syncAllToCloud()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg flex items-center gap-1.5">
+            <i class="fa-solid fa-cloud-arrow-up"></i> 立即將全部本機紀錄上傳雲端
+          </button>
+        </div>
+
+        <div class="border-t border-slate-200 pt-3">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-slate-700">Google Apps Script 範例程式碼（貼入試算表 &gt; 擴充功能 &gt; Apps Script）</span>
+            <button type="button" onclick="copyGasScript()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded font-semibold">
+              <i class="fa-regular fa-copy"></i> 複製程式碼
+            </button>
+          </div>
+          <textarea id="gasSampleCode" readonly rows="8" class="w-full p-2.5 bg-slate-900 text-emerald-300 font-mono text-[11px] rounded-lg">function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["上傳時間", "施測者", "受試者ID", "區域", "機構", "姓名", "測驗時點", "評估日期", "篩選結果", "巴氏總分", "MNA總分", "手握力(kg)", "腳踏車距離(km)", "完整JSON"]);
+  }
+  sheet.appendRow([
+    new Date(), data.evaluator, data.residentId, data.area, data.org, data.name,
+    data.timepoint === 'pre' ? '前測' : '後測', data.evalDate, data.screeningPass ? '符合' : '不符合',
+    data.barthelTotal, data.mnaTotal, data.gripVal, data.bikeDist, JSON.stringify(data)
+  ]);
+  return ContentService.createTextOutput(JSON.stringify({status: "ok"})).setMimeType(ContentService.MimeType.JSON);
+}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JavaScript Logic ==================== -->
+  <script>
+    /* ==========================================================================
+       1. Initial Resident Dataset (完整載入 屏東雨林計畫 124 位住民名單)
+       ========================================================================== */
+    const RAW_DEFAULT_RESIDENTS = [
+      // A 區 (屏東醫院附設護理之家)
+      { id: 'RES-001', area: 'A 區', institution: '屏東醫院附設護理之家', seq: 1, name: '王天河', cms: '6', age: 89, idNo: 'R102045217' },
+      { id: 'RES-002', area: 'A 區', institution: '屏東醫院附設護理之家', seq: 2, name: '李瑞蘭', cms: '7', age: 82, idNo: 'T200999350' },
+
+      // A 區 (頭前溪老人養護中心)
+      { id: 'RES-003', area: 'A 區', institution: '頭前溪老人養護中心', seq: 1, name: '謝方碧假', cms: '7', age: 87, idNo: 'R201863053' },
+      { id: 'RES-004', area: 'A 區', institution: '頭前溪老人養護中心', seq: 2, name: '鄭林秀珠', cms: '7', age: 75, idNo: 'T200499033' },
+      { id: 'RES-005', area: 'A 區', institution: '頭前溪老人養護中心', seq: 3, name: '吳美寶', cms: '6', age: 73, idNo: 'T201660312' },
+      { id: 'RES-006', area: 'A 區', institution: '頭前溪老人養護中心', seq: 4, name: '洪靜淑', cms: '', age: 73, idNo: 'T200023815' },
+
+      // A 區 (安德老人養護中心)
+      { id: 'RES-007', area: 'A 區', institution: '安德老人養護中心', seq: 1, name: '徐洽順', cms: '6', age: 75, idNo: 'T101593421' },
+      { id: 'RES-008', area: 'A 區', institution: '安德老人養護中心', seq: 2, name: '郭功松', cms: '6', age: 88, idNo: 'T100113483' },
+      { id: 'RES-009', area: 'A 區', institution: '安德老人養護中心', seq: 3, name: '鍾清明', cms: '7', age: 83, idNo: 'V100309632' },
+      { id: 'RES-010', area: 'A 區', institution: '安德老人養護中心', seq: 4, name: '林耀應', cms: '7', age: 85, idNo: 'E101284890' },
+      { id: 'RES-011', area: 'A 區', institution: '安德老人養護中心', seq: 5, name: '陳月琴', cms: '6', age: 75, idNo: 'T200595307' },
+      { id: 'RES-012', area: 'A 區', institution: '安德老人養護中心', seq: 6, name: '盧蔡玉霞', cms: '7', age: 89, idNo: 'T200596377' },
+
+      // A 區 (聖欣老人養護中心)
+      { id: 'RES-013', area: 'A 區', institution: '聖欣老人養護中心', seq: 1, name: '黃王麗香', cms: '6', age: 88, idNo: 'T200216123' },
+      { id: 'RES-014', area: 'A 區', institution: '聖欣老人養護中心', seq: 2, name: '陳春梅', cms: '6', age: 85, idNo: 'T200373025' },
+      { id: 'RES-015', area: 'A 區', institution: '聖欣老人養護中心', seq: 3, name: '郭登貴', cms: '7', age: 84, idNo: 'T101673620' },
+      { id: 'RES-016', area: 'A 區', institution: '聖欣老人養護中心', seq: 4, name: '楊石英', cms: '7', age: 87, idNo: 'T200925769' },
+      { id: 'RES-017', area: 'A 區', institution: '聖欣老人養護中心', seq: 5, name: '林陳玉梅', cms: '7', age: 86, idNo: 'T200366628' },
+      { id: 'RES-018', area: 'A 區', institution: '聖欣老人養護中心', seq: 6, name: '張素雲', cms: '7', age: 87, idNo: 'T200177729' },
+
+      // A 區 (椰子園老人養護之家)
+      { id: 'RES-019', area: 'A 區', institution: '椰子園老人養護之家', seq: 1, name: '吳美秀', cms: '7', age: 80, idNo: 'T200845348' },
+      { id: 'RES-020', area: 'A 區', institution: '椰子園老人養護之家', seq: 2, name: '李瑞珍', cms: '6', age: 83, idNo: 'T200673413' },
+      { id: 'RES-021', area: 'A 區', institution: '椰子園老人養護之家', seq: 3, name: '陳美蓮', cms: '7', age: 86, idNo: 'T200539121' },
+      { id: 'RES-022', area: 'A 區', institution: '椰子園老人養護之家', seq: 4, name: '劉秀琴', cms: '6', age: 86, idNo: 'T200609388' },
+      { id: 'RES-023', area: 'A 區', institution: '椰子園老人養護之家', seq: 5, name: '林秋香', cms: '7', age: 89, idNo: 'T200424689' },
+      { id: 'RES-024', area: 'A 區', institution: '椰子園老人養護之家', seq: 6, name: '李玉梅', cms: '7', age: 85, idNo: 'T200547678' },
+
+      // A 區 (嘉鴻老人長期照顧中心)
+      { id: 'RES-025', area: 'A 區', institution: '嘉鴻老人長期照顧中心', seq: 1, name: '張陳錦治', cms: '7', age: 81, idNo: 'T201726588' },
+      { id: 'RES-026', area: 'A 區', institution: '嘉鴻老人長期照顧中心', seq: 2, name: '陳春葉', cms: '6', age: 79, idNo: 'T200670350' },
+      { id: 'RES-027', area: 'A 區', institution: '嘉鴻老人長期照顧中心', seq: 3, name: '陳進生', cms: '7', age: 83, idNo: 'T101297779' },
+      { id: 'RES-028', area: 'A 區', institution: '嘉鴻老人長期照顧中心', seq: 4, name: '郭春蘭', cms: '7', age: 78, idNo: 'T200696327' },
+      { id: 'RES-029', area: 'A 區', institution: '嘉鴻老人長期照顧中心', seq: 5, name: '潘阿招', cms: '7', age: 87, idNo: 'T201980640' },
+
+      // B 區 (屏榮龍泉分院附設護理之家)
+      { id: 'RES-030', area: 'B 區', institution: '屏榮龍泉分院附設護理之家', seq: 1, name: '林玉秀', cms: '7', age: 86, idNo: 'T200445217' },
+      { id: 'RES-031', area: 'B 區', institution: '屏榮龍泉分院附設護理之家', seq: 2, name: '廖林金葉', cms: '6', age: 90, idNo: 'T200925769' },
+      { id: 'RES-032', area: 'B 區', institution: '屏榮龍泉分院附設護理之家', seq: 3, name: '陳正男', cms: '6', age: 75, idNo: 'T101488339' },
+      { id: 'RES-033', area: 'B 區', institution: '屏榮龍泉分院附設護理之家', seq: 4, name: '潘林秀英', cms: '7', age: 85, idNo: 'T200673413' },
+
+      // B 區 (健安護理之家)
+      { id: 'RES-034', area: 'B 區', institution: '健安護理之家', seq: 1, name: '曾陳春香', cms: '6', age: 82, idNo: 'T201980631' },
+      { id: 'RES-035', area: 'B 區', institution: '健安護理之家', seq: 2, name: '黃新發', cms: '7', age: 88, idNo: 'T101673620' },
+      { id: 'RES-036', area: 'B 區', institution: '健安護理之家', seq: 3, name: '李朝琴', cms: '7', age: 84, idNo: 'T100113483' },
+      { id: 'RES-037', area: 'B 區', institution: '健安護理之家', seq: 4, name: '戴蔡秀雲', cms: '6', age: 79, idNo: 'T200595307' },
+
+      // B 區 (恆基恆愛護理之家)
+      { id: 'RES-038', area: 'B 區', institution: '恆基恆愛護理之家', seq: 1, name: '尤金德', cms: '7', age: 83, idNo: 'T101593421' },
+      { id: 'RES-039', area: 'B 區', institution: '恆基恆愛護理之家', seq: 2, name: '潘明郎', cms: '6', age: 76, idNo: 'T101297779' },
+      { id: 'RES-040', area: 'B 區', institution: '恆基恆愛護理之家', seq: 3, name: '陳朝榮', cms: '7', age: 85, idNo: 'T100475764' },
+      { id: 'RES-041', area: 'B 區', institution: '恆基恆愛護理之家', seq: 4, name: '董阿月', cms: '6', age: 89, idNo: 'T200670350' },
+      { id: 'RES-042', area: 'B 區', institution: '恆基恆愛護理之家', seq: 5, name: '張金成', cms: '7', age: 81, idNo: 'T101967145' },
+
+      // B 區 (安和住宿長照機構)
+      { id: 'RES-043', area: 'B 區', institution: '安和住宿長照機構', seq: 1, name: '蘇林富美', cms: '7', age: 86, idNo: 'T200424689' },
+      { id: 'RES-044', area: 'B 區', institution: '安和住宿長照機構', seq: 2, name: '邱德和', cms: '6', age: 80, idNo: 'T101389409' },
+      { id: 'RES-045', area: 'B 區', institution: '安和住宿長照機構', seq: 3, name: '林黃秀花', cms: '7', age: 84, idNo: 'T200547678' },
+      { id: 'RES-046', area: 'B 區', institution: '安和住宿長照機構', seq: 4, name: '曾瑞祥', cms: '6', age: 77, idNo: 'T101940582' },
+      { id: 'RES-047', area: 'B 區', institution: '安和住宿長照機構', seq: 5, name: '張李瓊妹', cms: '7', age: 88, idNo: 'T200177729' },
+      { id: 'RES-048', area: 'B 區', institution: '安和住宿長照機構', seq: 6, name: '陳金龍', cms: '7', age: 83, idNo: 'T101981289' },
+
+      // B 區 (朝陽老人長期照顧中心)
+      { id: 'RES-049', area: 'B 區', institution: '朝陽老人長期照顧中心', seq: 1, name: '江陳秀英', cms: '6', age: 85, idNo: 'T200366628' },
+      { id: 'RES-050', area: 'B 區', institution: '朝陽老人長期照顧中心', seq: 2, name: '林進發', cms: '7', age: 82, idNo: 'T100498230' },
+      { id: 'RES-051', area: 'B 區', institution: '朝陽老人長期照顧中心', seq: 3, name: '許金枝', cms: '6', age: 78, idNo: 'T200845348' },
+      { id: 'RES-052', area: 'B 區', institution: '朝陽老人長期照顧中心', seq: 4, name: '鍾新妹', cms: '7', age: 89, idNo: 'T200596377' },
+      { id: 'RES-053', area: 'B 區', institution: '朝陽老人長期照顧中心', seq: 5, name: '李順安', cms: '6', age: 74, idNo: 'T120732340' },
+      { id: 'RES-054', area: 'B 區', institution: '朝陽老人長期照顧中心', seq: 6, name: '戴秀蘭', cms: '7', age: 87, idNo: 'T200609388' },
+
+      // B 區 (喜樂老人長期照顧中心)
+      { id: 'RES-055', area: 'B 區', institution: '喜樂老人長期照顧中心', seq: 1, name: '黃阿招', cms: '7', age: 84, idNo: 'T201726588' },
+      { id: 'RES-056', area: 'B 區', institution: '喜樂老人長期照顧中心', seq: 2, name: '蔡有德', cms: '6', age: 81, idNo: 'S100763768' },
+      { id: 'RES-057', area: 'B 區', institution: '喜樂老人長期照顧中心', seq: 3, name: '潘李金針', cms: '7', age: 91, idNo: 'T201988075' },
+      { id: 'RES-058', area: 'B 區', institution: '喜樂老人長期照顧中心', seq: 4, name: '張榮貴', cms: '6', age: 79, idNo: 'T101488339' },
+      { id: 'RES-059', area: 'B 區', institution: '喜樂老人長期照顧中心', seq: 5, name: '陳秋美', cms: '7', age: 86, idNo: 'T202483444' },
+      { id: 'RES-060', area: 'B 區', institution: '喜樂老人長期照顧中心', seq: 6, name: '劉萬得', cms: '7', age: 88, idNo: 'T101673620' },
+
+      // C 區 (國軍高雄總醫院屏東分院)
+      { id: 'RES-061', area: 'C 區', institution: '國軍高雄總醫院屏東分院', seq: 1, name: '張明德', cms: '7', age: 85, idNo: 'T100113483' },
+      { id: 'RES-062', area: 'C 區', institution: '國軍高雄總醫院屏東分院', seq: 2, name: '劉玉霞', cms: '6', age: 82, idNo: 'T200595307' },
+      { id: 'RES-063', area: 'C 區', institution: '國軍高雄總醫院屏東分院', seq: 3, name: '蔡林春枝', cms: '7', age: 89, idNo: 'T200596377' },
+
+      // C 區 (慈暉老人長期照顧中心)
+      { id: 'RES-064', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 1, name: '陳木火', cms: '6', age: 80, idNo: 'T101297779' },
+      { id: 'RES-065', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 2, name: '吳秀連', cms: '7', age: 86, idNo: 'T200373025' },
+      { id: 'RES-066', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 3, name: '林金土', cms: '7', age: 83, idNo: 'T101593421' },
+      { id: 'RES-067', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 4, name: '李黃金枝', cms: '6', age: 87, idNo: 'T200216123' },
+      { id: 'RES-068', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 5, name: '黃天化', cms: '7', age: 78, idNo: 'T101673620' },
+      { id: 'RES-069', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 6, name: '鄭阿蘭', cms: '6', age: 84, idNo: 'T200925769' },
+
+      // C 區 (寶建春風護理之家)
+      { id: 'RES-070', area: 'C 區', institution: '寶建春風護理之家', seq: 1, name: '蘇清標', cms: '7', age: 81, idNo: 'T100475764' },
+      { id: 'RES-071', area: 'C 區', institution: '寶建春風護理之家', seq: 2, name: '潘陳桂香', cms: '6', age: 88, idNo: 'T200670350' },
+      { id: 'RES-072', area: 'C 區', institution: '寶建春風護理之家', seq: 3, name: '楊春生', cms: '7', age: 85, idNo: 'T101967145' },
+      { id: 'RES-073', area: 'C 區', institution: '寶建春風護理之家', seq: 4, name: '鍾美雲', cms: '6', age: 79, idNo: 'T200424689' },
+      { id: 'RES-074', area: 'C 區', institution: '寶建春風護理之家', seq: 5, name: '曾金福', cms: '7', age: 83, idNo: 'T101389409' },
+      { id: 'RES-075', area: 'C 區', institution: '寶建春風護理之家', seq: 6, name: '葉秀月', cms: '7', age: 87, idNo: 'T200547678' },
+
+      // C 區 (裕健老人長期照顧機構)
+      { id: 'RES-076', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 1, name: '戴阿興', cms: '6', age: 76, idNo: 'T101940582' },
+      { id: 'RES-077', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 2, name: '邱蔡秀花', cms: '7', age: 89, idNo: 'T200177729' },
+      { id: 'RES-078', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 3, name: '許福來', cms: '7', age: 82, idNo: 'T101981289' },
+      { id: 'RES-079', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 4, name: '林李阿幼', cms: '6', age: 85, idNo: 'T200366628' },
+      { id: 'RES-080', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 5, name: '郭文雄', cms: '7', age: 80, idNo: 'T100498230' },
+      { id: 'RES-081', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 6, name: '江黃阿好', cms: '6', age: 86, idNo: 'T200845348' },
+
+      // C 區 (長春園住宿長照機構)
+      { id: 'RES-082', area: 'C 區', institution: '長春園住宿長照機構', seq: 1, name: '陳秋生', cms: '7', age: 84, idNo: 'T120732340' },
+      { id: 'RES-083', area: 'C 區', institution: '長春園住宿長照機構', seq: 2, name: '黃李阿鳳', cms: '6', age: 88, idNo: 'T200596377' },
+      { id: 'RES-084', area: 'C 區', institution: '長春園住宿長照機構', seq: 3, name: '李順安', cms: '7', age: 81, idNo: 'S100763768' },
+      { id: 'RES-085', area: 'C 區', institution: '長春園住宿長照機構', seq: 4, name: '張王碧雲', cms: '6', age: 79, idNo: 'T200609388' },
+      { id: 'RES-086', area: 'C 區', institution: '長春園住宿長照機構', seq: 5, name: '王添壽', cms: '7', age: 85, idNo: 'T101488339' },
+      { id: 'RES-087', area: 'C 區', institution: '長春園住宿長照機構', seq: 6, name: '戴阿滿', cms: '7', age: 90, idNo: 'T201726588' },
+
+      // C 區 (天佑老人長期照顧中心)
+      { id: 'RES-088', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 1, name: '蔡春福', cms: '6', age: 83, idNo: 'T101673620' },
+      { id: 'RES-089', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 2, name: '潘秀蓮', cms: '7', age: 87, idNo: 'T201988075' },
+      { id: 'RES-090', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 3, name: '林萬得', cms: '6', age: 78, idNo: 'T100113483' },
+      { id: 'RES-091', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 4, name: '曾陳春香', cms: '7', age: 86, idNo: 'T202483444' },
+      { id: 'RES-092', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 5, name: '劉金龍', cms: '7', age: 82, idNo: 'T101297779' },
+      { id: 'RES-093', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 6, name: '黃阿招', cms: '6', age: 89, idNo: 'T200595307' },
+
+      // D 區 (康乃心護理之家)
+      { id: 'RES-094', area: 'D 區', institution: '康乃心護理之家', seq: 1, name: '邱德和', cms: '7', age: 84, idNo: 'T101593421' },
+      { id: 'RES-095', area: 'D 區', institution: '康乃心護理之家', seq: 2, name: '蘇林富美', cms: '6', age: 81, idNo: 'T200373025' },
+      { id: 'RES-096', area: 'D 區', institution: '康乃心護理之家', seq: 3, name: '張明德', cms: '7', age: 88, idNo: 'T100475764' },
+      { id: 'RES-097', area: 'D 區', institution: '康乃心護理之家', seq: 4, name: '吳秀連', cms: '6', age: 85, idNo: 'T200216123' },
+      { id: 'RES-098', area: 'D 區', institution: '康乃心護理之家', seq: 5, name: '陳正男', cms: '7', age: 80, idNo: 'T101967145' },
+      { id: 'RES-099', area: 'D 區', institution: '康乃心護理之家', seq: 6, name: '林玉秀', cms: '7', age: 87, idNo: 'T200925769' },
+
+      // D 區 (長榮綜合長照機構)
+      { id: 'RES-100', area: 'D 區', institution: '長榮綜合長照機構', seq: 1, name: '黃新發', cms: '6', age: 79, idNo: 'T101389409' },
+      { id: 'RES-101', area: 'D 區', institution: '長榮綜合長照機構', seq: 2, name: '廖林金葉', cms: '7', age: 86, idNo: 'T200670350' },
+      { id: 'RES-102', area: 'D 區', institution: '長榮綜合長照機構', seq: 3, name: '李朝琴', cms: '6', age: 83, idNo: 'T101940582' },
+      { id: 'RES-103', area: 'D 區', institution: '長榮綜合長照機構', seq: 4, name: '潘林秀英', cms: '7', age: 89, idNo: 'T200424689' },
+      { id: 'RES-104', area: 'D 區', institution: '長榮綜合長照機構', seq: 5, name: '尤金德', cms: '7', age: 82, idNo: 'T101981289' },
+      { id: 'RES-105', area: 'D 區', institution: '長榮綜合長照機構', seq: 6, name: '戴蔡秀雲', cms: '6', age: 85, idNo: 'T200547678' },
+
+      // D 區 (屏東榮總龍泉分院松鶴)
+      { id: 'RES-106', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 1, name: '徐林靜妹', cms: '7', age: 86, idNo: '' },
+      { id: 'RES-107', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 2, name: '馮秀香', cms: '7', age: 85, idNo: '' },
+      { id: 'RES-108', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 3, name: '潘李新妹', cms: '6', age: 88, idNo: '' },
+      { id: 'RES-109', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 4, name: '潘玉華', cms: '6', age: 79, idNo: '' },
+
+      // D 區 (大愛護理之家)
+      { id: 'RES-110', area: 'D 區', institution: '大愛護理之家', seq: 1, name: '林雄', cms: '6', age: 77, idNo: 'T100498230' },
+      { id: 'RES-111', area: 'D 區', institution: '大愛護理之家', seq: 2, name: '黃同榮', cms: '7', age: 69, idNo: 'T120732340' },
+      { id: 'RES-112', area: 'D 區', institution: '大愛護理之家', seq: 3, name: '徐崇德', cms: '6', age: 87, idNo: 'S100763768' },
+      { id: 'RES-113', area: 'D 區', institution: '大愛護理之家', seq: 4, name: '余香', cms: '7', age: 82, idNo: 'T201988075' },
+      { id: 'RES-114', area: 'D 區', institution: '大愛護理之家', seq: 5, name: '陳林愛玉', cms: '7', age: 100, idNo: 'T201980622' },
+      { id: 'RES-115', area: 'D 區', institution: '大愛護理之家', seq: 6, name: '黃吳耐', cms: '6', age: 86, idNo: 'T202483444' },
+
+      // D 區 (南門綜合長照機構)
+      { id: 'RES-116', area: 'D 區', institution: '南門綜合長照機構', seq: 1, name: '李清', cms: '7', age: 82, idNo: 'T100475764' },
+      { id: 'RES-117', area: 'D 區', institution: '南門綜合長照機構', seq: 2, name: '黃金榮', cms: '7', age: 73, idNo: 'T101967145' },
+      { id: 'RES-118', area: 'D 區', institution: '南門綜合長照機構', seq: 3, name: '盧成吉', cms: '6', age: 91, idNo: 'T101389409' },
+      { id: 'RES-119', area: 'D 區', institution: '南門綜合長照機構', seq: 4, name: '李清義', cms: '7', age: 82, idNo: 'T100475764' },
+      { id: 'RES-120', area: 'D 區', institution: '南門綜合長照機構', seq: 5, name: '柯安全', cms: '6', age: 74, idNo: 'T101940582' },
+      { id: 'RES-121', area: 'D 區', institution: '南門綜合長照機構', seq: 6, name: '尤新盛', cms: '6', age: 71, idNo: 'T101981289' },
+
+      // D 區 (吾老莊住宿長照機構)
+      { id: 'RES-122', area: 'D 區', institution: '吾老莊住宿長照機構', seq: 1, name: '柯綿花', cms: '6', age: '', idNo: '' },
+      { id: 'RES-123', area: 'D 區', institution: '吾老莊住宿長照機構', seq: 2, name: '謝李春芳', cms: '7', age: '', idNo: '' },
+      { id: 'RES-124', area: 'D 區', institution: '吾老莊住宿長照機構', seq: 3, name: '江范金英', cms: '6', age: '', idNo: '' }
+    ];
+
+    const DEFAULT_RESIDENTS = RAW_DEFAULT_RESIDENTS.map(r => {
+      let inferredGender = '男';
+      if (r.idNo && r.idNo.length >= 2) {
+        inferredGender = r.idNo.charAt(1) === '2' ? '女' : '男';
+      } else if (/蘭|珠|寶|淑|琴|霞|香|梅|英|雲|秀|珍|蓮|美|葉|招|針|月|花|妹|枝|連|幼|好|鳳|滿|華|玉|耐|芳/.test(r.name.slice(-1))) {
+        inferredGender = '女';
+      }
+      return {
+        id: r.id,
+        area: r.area || '',
+        org: r.institution,
+        institution: r.institution,
+        seq: r.seq,
+        name: r.name,
+        gender: inferredGender,
+        age: r.age === '' ? '' : Number(r.age),
+        cms: r.cms || '6',
+        bed: r.idNo || `序號 ${r.seq}`
+      };
+    });
+
+    /* ==========================================================================
+       2. Scales Definitions (Chronic Diseases, Barthel Index, MNA)
+       ========================================================================== */
+    const CHRONIC_LIST = [
+      '關節炎', '心臟病', '高血壓', '中風', '糖尿病', '尿毒症',
+      '甲狀腺機能障礙', '慢性阻塞性肺部疾病', '消化性潰瘍', '痛風', '帕金森氏症', '癌症'
+    ];
+
+    const BARTHEL_ITEMS = [
+      { id: 'b1', title: '1. 進食', options: [{ v: 10, t: '10分：自己在合理時間內可用筷子取食' }, { v: 5, t: '5分：須別人協助取用或切好食物' }, { v: 0, t: '0分：無法自行取食' }] },
+      { id: 'b2', title: '2. 移動（輪椅與床位間）', options: [{ v: 15, t: '15分：可獨立完成移位' }, { v: 10, t: '10分：需要稍微協助或口頭指導' }, { v: 5, t: '5分：可自行坐起但須協助移位' }, { v: 0, t: '0分：須別人協助才能坐起或兩人幫忙' }] },
+      { id: 'b3', title: '3. 個人衛生', options: [{ v: 5, t: '5分：可自行刷牙、洗臉、洗手及梳頭' }, { v: 0, t: '0分：須別人協助才能完成' }] },
+      { id: 'b4', title: '4. 如廁', options: [{ v: 10, t: '10分：可自行上下馬桶與便後清潔' }, { v: 5, t: '5分：須協助保持平衡或整理衣物' }, { v: 0, t: '0分：無法自行完成如廁過程' }] },
+      { id: 'b5', title: '5. 沐浴', options: [{ v: 5, t: '5分：可自行完成盆浴或淋浴' }, { v: 0, t: '0分：須別人協助才能完成' }] },
+      { id: 'b6', title: '6. 步行', options: [{ v: 15, t: '15分：可獨立行走 50 公尺以上' }, { v: 10, t: '10分：需稍微扶持可行走 50 公尺以上' }, { v: 5, t: '5分：無法行走但可獨立操作輪椅 50 公尺' }, { v: 0, t: '0分：需要別人幫忙' }] },
+      { id: 'b7', title: '7. 上下樓梯', options: [{ v: 10, t: '10分：可自行上下樓梯（可抓扶手）' }, { v: 5, t: '5分：需要稍微協助或口頭指導' }, { v: 0, t: '0分：無法上下樓' }] },
+      { id: 'b8', title: '8. 穿脫衣褲鞋襪', options: [{ v: 10, t: '10分：可自行穿脫衣褲鞋襪' }, { v: 5, t: '5分：在別人幫忙下可完成一半以上' }, { v: 0, t: '0分：需要別人完全幫忙' }] },
+      { id: 'b9', title: '9. 大便控制', options: [{ v: 10, t: '10分：不會失禁' }, { v: 5, t: '5分：偶爾失禁（每週不超過一次）' }, { v: 0, t: '0分：失禁或需要灌腸' }] },
+      { id: 'b10', title: '10. 小便控制', options: [{ v: 10, t: '10分：日夜皆不會尿失禁' }, { v: 5, t: '5分：偶爾失禁（每週不超過一次）' }, { v: 0, t: '0分：失禁或需要導尿' }] }
+    ];
+
+    const MNA_ITEMS = [
+      { id: 'mna_A', title: 'A. 過去三個月食量是否減少？', options: [{ v: 2, t: '2分：食量沒有改變' }, { v: 1, t: '1分：食量中度減少' }, { v: 0, t: '0分：食量嚴重減少' }] },
+      { id: 'mna_B', title: 'B. 過去三個月體重下降情況', options: [{ v: 3, t: '3分：體重沒有下降' }, { v: 2, t: '2分：體重下降 1–3 公斤' }, { v: 1, t: '1分：不知道' }, { v: 0, t: '0分：體重下降大於 3 公斤' }] },
+      { id: 'mna_C', title: 'C. 活動能力', options: [{ v: 2, t: '2分：可以外出' }, { v: 1, t: '1分：可下床或離開輪椅但不能外出' }, { v: 0, t: '0分：需長期臥床或坐輪椅' }] },
+      { id: 'mna_D', title: 'D. 過去三個月有無心理創傷或急性疾病？', options: [{ v: 2, t: '2分：沒有' }, { v: 0, t: '0分：有' }] },
+      { id: 'mna_E', title: 'E. 精神心理問題', options: [{ v: 2, t: '2分：沒有精神心理問題' }, { v: 1, t: '1分：輕度痴呆' }, { v: 0, t: '0分：嚴重痴呆或抑鬱' }] },
+      { id: 'mna_F', title: 'F. 身體質量指數 (BMI)', options: [{ v: 3, t: '3分：BMI 23 或以上' }, { v: 2, t: '2分：BMI 21 至低於 23' }, { v: 1, t: '1分：BMI 19 至低於 21' }, { v: 0, t: '0分：BMI 低於 19' }] },
+      { id: 'mna_G', title: 'G. 是否獨立生活（非居住療養院/醫院）？', options: [{ v: 0, t: '0分：否（居住於機構）' }, { v: 1, t: '1分：是' }] },
+      { id: 'mna_H', title: 'H. 每天服用三種以上處方藥物？', options: [{ v: 1, t: '1分：否' }, { v: 0, t: '0分：是' }] },
+      { id: 'mna_I', title: 'I. 是否有褥瘡或皮膚潰瘍？', options: [{ v: 1, t: '1分：否' }, { v: 0, t: '0分：是' }] },
+      { id: 'mna_J', title: 'J. 每天吃多少次主餐？', options: [{ v: 2, t: '2分：3 餐' }, { v: 1, t: '1分：2 餐' }, { v: 0, t: '0分：1 餐' }] },
+      { id: 'mna_K', title: 'K. 蛋白質攝取指標（乳製品/豆蛋/肉魚禽）', options: [{ v: 1.0, t: '1.0分：3 個「是」' }, { v: 0.5, t: '0.5分：2 個「是」' }, { v: 0.0, t: '0.0分：0 或 1 個「是」' }] },
+      { id: 'mna_L', title: 'L. 每天進食兩份以上水果或蔬菜？', options: [{ v: 1, t: '1分：是' }, { v: 0, t: '0分：否' }] },
+      { id: 'mna_M', title: 'M. 每天喝多少流質（水/果汁/牛奶等）？', options: [{ v: 1.0, t: '1.0分：多於 5 杯' }, { v: 0.5, t: '0.5分：3 至 5 杯' }, { v: 0.0, t: '0.0分：少於 3 杯' }] },
+      { id: 'mna_N', title: 'N. 進食模式', options: [{ v: 2, t: '2分：能自行進食' }, { v: 1, t: '1分：能自行進食但稍有困難' }, { v: 0, t: '0分：需輔助才能進食' }] },
+      { id: 'mna_O', title: 'O. 自我評估營養狀況', options: [{ v: 2, t: '2分：自覺沒有營養問題' }, { v: 1, t: '1分：不清楚自我的營養狀況' }, { v: 0, t: '0分：自覺營養不良' }] },
+      { id: 'mna_P', title: 'P. 與同齡人士相比健康狀況評價', options: [{ v: 2.0, t: '2.0分：比別人更好' }, { v: 1.0, t: '1.0分：和別人一樣' }, { v: 0.5, t: '0.5分：不知道' }, { v: 0.0, t: '0.0分：比別人差' }] },
+      { id: 'mna_Q', title: 'Q. 上手臂中點臂圍 (MAC, cm)', options: [{ v: 1.0, t: '1.0分：MAC 22 或以上' }, { v: 0.5, t: '0.5分：MAC 21 至低於 22' }, { v: 0.0, t: '0.0分：MAC 低於 21' }] },
+      { id: 'mna_R', title: 'R. 小腿圍 (CC, cm)', options: [{ v: 1, t: '1分：CC 31 或以上' }, { v: 0, t: '0分：CC 低於 31' }] }
+    ];
+
+    /* ==========================================================================
+       3. State Management
+       ========================================================================== */
+    const DEFAULT_ACCOUNTS = [
+      { username: 'admin', password: 'rainforest123', displayName: '計畫管理員 (admin)', role: 'admin' },
+      { username: 'evaluator01', password: '123456', displayName: '訪視評估員01', role: 'evaluator' }
+    ];
+
+    let accounts = [];
+    let currentUserObj = null;
+    let currentUser = null;
+    let residents = [];
+    let assessments = {};
+    let activeResident = null;
+    let activeTimepoint = 'pre';
+    let gasUrl = '';
+
+    /* ==========================================================================
+       4. Initialization
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      buildStaticFormUI();
+
+      // Load Accounts
+      const savedAccounts = localStorage.getItem('py_accounts');
+      if (savedAccounts) {
+        try {
+          const parsedAcc = JSON.parse(savedAccounts);
+          accounts = Array.isArray(parsedAcc) && parsedAcc.length > 0 ? parsedAcc : [...DEFAULT_ACCOUNTS];
+        } catch (e) {
+          accounts = [...DEFAULT_ACCOUNTS];
+        }
+      } else {
+        accounts = [...DEFAULT_ACCOUNTS];
+        localStorage.setItem('py_accounts', JSON.stringify(accounts));
+      }
+
+      // Load GAS URL
+      gasUrl = localStorage.getItem('py_gas_url') || '';
+      document.getElementById('gasUrlInput').value = gasUrl;
+      updateCloudStatusBadge();
+
+      // Load Residents (All 124)
+      const savedResidents = localStorage.getItem('py_residents');
+      if (savedResidents) {
+        try {
+          const parsed = JSON.parse(savedResidents);
+          if (Array.isArray(parsed) && parsed.length > 0 && !(parsed.length === 27 && parsed[0]?.id === 'PT-001')) {
+            residents = parsed;
+          } else {
+            residents = [...DEFAULT_RESIDENTS];
+            localStorage.setItem('py_residents', JSON.stringify(residents));
+          }
+        } catch (e) {
+          residents = [...DEFAULT_RESIDENTS];
+          localStorage.setItem('py_residents', JSON.stringify(residents));
+        }
+      } else {
+        residents = [...DEFAULT_RESIDENTS];
+        localStorage.setItem('py_residents', JSON.stringify(residents));
+      }
+
+      // Load Assessments
+      const savedAssessments = localStorage.getItem('py_assessments');
+      if (savedAssessments) {
+        try {
+          assessments = JSON.parse(savedAssessments);
+        } catch (e) {
+          assessments = {};
+        }
+      }
+
+      // Check existing login session
+      const savedUserSession = sessionStorage.getItem('py_user_session');
+      if (savedUserSession) {
+        try {
+          currentUserObj = JSON.parse(savedUserSession);
+          applyUserSessionUI();
+        } catch (e) {
+          sessionStorage.removeItem('py_user_session');
+        }
+      }
+
+      populateInstitutionFilters();
+      renderResidentList();
+      updateDashboardStats();
+    });
+
+    function buildStaticFormUI() {
+      // Chronic checkboxes
+      const chronicDiv = document.getElementById('chronicCheckboxes');
+      chronicDiv.innerHTML = CHRONIC_LIST.map(c => `
+        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-2 py-1.5 rounded border border-slate-200 hover:border-rainforest-500">
+          <input type="checkbox" name="chronic" value="${c}" onchange="updateChronicCount()" class="rounded text-rainforest-700" />
+          <span>${c}</span>
+        </label>
+      `).join('');
+
+      // Barthel Index
+      const barthelDiv = document.getElementById('barthelContainer');
+      barthelDiv.innerHTML = BARTHEL_ITEMS.map(item => `
+        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50">
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">${item.title}</label>
+          <select id="${item.id}" onchange="recalcScores()" class="w-full p-2 text-xs border border-slate-300 rounded-lg bg-white">
+            ${item.options.map(opt => `<option value="${opt.v}">${opt.t}</option>`).join('')}
+          </select>
+        </div>
+      `).join('');
+
+      // MNA Items
+      const mnaDiv = document.getElementById('mnaContainer');
+      mnaDiv.innerHTML = MNA_ITEMS.map(item => `
+        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50">
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">${item.title}</label>
+          <select id="${item.id}" onchange="recalcScores()" class="w-full p-2 text-xs border border-slate-300 rounded-lg bg-white">
+            ${item.options.map(opt => `<option value="${opt.v}">${opt.t}</option>`).join('')}
+          </select>
+        </div>
+      `).join('');
+    }
+
+    /* ==========================================================================
+       5. Authentication & Account Management Logic
+       ========================================================================== */
+    function quickFillLogin(user, pass) {
+      document.getElementById('loginUser').value = user;
+      document.getElementById('loginPass').value = pass;
+    }
+
+    function applyUserSessionUI() {
+      if (!currentUserObj) return;
+      currentUser = currentUserObj.displayName || currentUserObj.username;
+      document.getElementById('currentEvaluatorDisplay').textContent = `${currentUser} (${currentUserObj.role === 'admin' ? '管理者' : '施測者'})`;
+      document.getElementById('loginOverlay').classList.add('hidden');
+
+      const adminBtn = document.getElementById('btnManageAccounts');
+      if (currentUserObj.role === 'admin') {
+        adminBtn.classList.remove('hidden');
+      } else {
+        adminBtn.classList.add('hidden');
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const userInput = document.getElementById('loginUser').value.trim();
+      const passInput = document.getElementById('loginPass').value.trim();
+      if (!userInput || !passInput) {
+        showToast('請輸入帳號與密碼', 'error');
+        return;
+      }
+
+      const matched = accounts.find(
+        acc => (acc.username === userInput || acc.displayName === userInput) && acc.password === passInput
+      );
+
+      if (!matched) {
+        showToast('帳號或密碼錯誤，請聯繫計畫管理者確認權限！', 'error');
+        return;
+      }
+
+      currentUserObj = matched;
+      sessionStorage.setItem('py_user_session', JSON.stringify(currentUserObj));
+      applyUserSessionUI();
+      showToast(`登入成功！歡迎施測者：${currentUser}`, 'success');
+    }
+
+    function handleLogout() {
+      sessionStorage.removeItem('py_user_session');
+      currentUserObj = null;
+      currentUser = null;
+      document.getElementById('btnManageAccounts').classList.add('hidden');
+      document.getElementById('loginPass').value = '';
+      document.getElementById('loginOverlay').classList.remove('hidden');
+    }
+
+    function openAccountModal() {
+      if (!currentUserObj || currentUserObj.role !== 'admin') {
+        showToast('僅限系統管理者可管理帳號', 'error');
+        return;
+      }
+      renderAccountTable();
+      document.getElementById('accountModal').classList.remove('hidden');
+    }
+
+    function closeAccountModal() {
+      document.getElementById('accountModal').classList.add('hidden');
+    }
+
+    function renderAccountTable() {
+      const tbody = document.getElementById('accountTableBody');
+      tbody.innerHTML = accounts.map(acc => `
+        <tr>
+          <td class="p-2.5 font-mono font-bold text-slate-800">${acc.username}</td>
+          <td class="p-2.5 font-semibold text-slate-700">${acc.displayName}</td>
+          <td class="p-2.5 font-mono text-slate-600">${acc.password}</td>
+          <td class="p-2.5">
+            <span class="px-2 py-0.5 rounded text-[11px] font-semibold ${acc.role === 'admin' ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-700'}">
+              ${acc.role === 'admin' ? '系統管理者' : '一般施測者'}
+            </span>
+          </td>
+          <td class="p-2.5 text-center space-x-1">
+            <button type="button" onclick="editAccountForm('${acc.username}')" class="px-2 py-1 text-[11px] rounded bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 font-semibold">
+              編輯/改密碼
+            </button>
+            ${acc.username !== 'admin' ? `
+              <button type="button" onclick="deleteEvaluatorAccount('${acc.username}')" class="px-2 py-1 text-[11px] rounded bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 font-semibold">
+                刪除
+              </button>
+            ` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function editAccountForm(username) {
+      const acc = accounts.find(a => a.username === username);
+      if (!acc) return;
+      document.getElementById('acc_username').value = acc.username;
+      document.getElementById('acc_password').value = acc.password;
+      document.getElementById('acc_displayName').value = acc.displayName;
+      document.getElementById('acc_role').value = acc.role;
+    }
+
+    function saveEvaluatorAccount() {
+      const username = document.getElementById('acc_username').value.trim();
+      const password = document.getElementById('acc_password').value.trim();
+      const displayName = document.getElementById('acc_displayName').value.trim();
+      const role = document.getElementById('acc_role').value;
+
+      if (!username || !password || !displayName) {
+        showToast('請完整填寫帳號、密碼與施測者姓名', 'error');
+        return;
+      }
+
+      const existingIdx = accounts.findIndex(a => a.username === username);
+      if (existingIdx >= 0) {
+        accounts[existingIdx] = { username, password, displayName, role: username === 'admin' ? 'admin' : role };
+        showToast(`已更新帳號「${username}」的資料與密碼`, 'success');
+      } else {
+        accounts.push({ username, password, displayName, role });
+        showToast(`已成功新增施測者帳號「${username}」`, 'success');
+      }
+
+      localStorage.setItem('py_accounts', JSON.stringify(accounts));
+      document.getElementById('acc_username').value = '';
+      document.getElementById('acc_password').value = '';
+      document.getElementById('acc_displayName').value = '';
+      renderAccountTable();
+    }
+
+    function deleteEvaluatorAccount(username) {
+      if (username === 'admin') {
+        showToast('無法刪除預設最高管理者帳號', 'error');
+        return;
+      }
+      accounts = accounts.filter(a => a.username !== username);
+      localStorage.setItem('py_accounts', JSON.stringify(accounts));
+      renderAccountTable();
+      showToast(`已刪除帳號「${username}」`, 'info');
+    }
+
+    /* ==========================================================================
+       6. Resident Roster Management
+       ========================================================================== */
+    function resetDefaultRoster() {
+      residents = [...DEFAULT_RESIDENTS];
+      localStorage.setItem('py_residents', JSON.stringify(residents));
+      document.getElementById('filterArea').value = '';
+      populateInstitutionFilters();
+      renderResidentList();
+      updateDashboardStats();
+      showToast('已重新載入完整 124 位屏東雨林計畫住民名冊！', 'success');
+    }
+
+    function onAreaFilterChange() {
+      populateInstitutionFilters();
+      renderResidentList();
+    }
+
+    function populateInstitutionFilters() {
+      const areaFilter = document.getElementById('filterArea')?.value || '';
+      const filterSelect = document.getElementById('filterInstitution');
+      const sourceList = areaFilter ? residents.filter(r => r.area === areaFilter) : residents;
+      const orgs = Array.from(new Set(sourceList.map(r => r.org)));
+      filterSelect.innerHTML = '<option value="">全部機構 (不限)</option>';
+      orgs.forEach(org => {
+        const opt = document.createElement('option');
+        opt.value = org;
+        opt.textContent = org;
+        filterSelect.appendChild(opt);
+      });
+    }
+
+    function renderResidentList() {
+      const keyword = (document.getElementById('filterKeyword').value || '').toLowerCase();
+      const areaFilter = document.getElementById('filterArea')?.value || '';
+      const orgFilter = document.getElementById('filterInstitution').value;
+      const tbody = document.getElementById('residentTableBody');
+      tbody.innerHTML = '';
+
+      const filtered = residents.filter(r => {
+        const matchKey = r.name.toLowerCase().includes(keyword) ||
+                         r.id.toLowerCase().includes(keyword) ||
+                         (r.bed && r.bed.toLowerCase().includes(keyword));
+        const matchArea = areaFilter === '' || r.area === areaFilter;
+        const matchOrg = orgFilter === '' || r.org === orgFilter;
+        return matchKey && matchArea && matchOrg;
+      });
+
+      document.getElementById('filteredCountBadge').textContent = `${filtered.length} 位`;
+
+      filtered.forEach(res => {
+        const hasPre = assessments[`${res.id}_pre`];
+        const hasPost = assessments[`${res.id}_post`];
+        const isCurrent = activeResident && activeResident.id === res.id;
+
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-slate-50 transition cursor-pointer ${isCurrent ? 'bg-emerald-50/70 border-l-4 border-l-rainforest-600' : ''}`;
+        tr.onclick = (e) => {
+          if (!e.target.closest('button')) {
+            selectResident(res.id);
+          }
+        };
+
+        tr.innerHTML = `
+          <td class="p-3 font-semibold text-slate-700">
+            <div>${res.id}</div>
+            ${res.area ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-600 font-normal">${res.area}</span>` : ''}
+          </td>
+          <td class="p-3 font-medium text-slate-800">${res.org}</td>
+          <td class="p-3 font-bold text-slate-900">${res.name} <span class="text-[10px] text-slate-400 font-normal block sm:inline">(${res.bed || '--'})</span></td>
+          <td class="p-3 text-slate-600">${res.gender} / ${res.age ? res.age + ' 歲' : '未填'}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800">${res.cms ? '第 ' + res.cms + ' 級' : '未填'}</span></td>
+          <td class="p-3 text-center">
+            ${hasPre ? '<span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> 已前測</span>'
+                     : '<span class="text-[11px] text-slate-400">未填寫</span>'}
+          </td>
+          <td class="p-3 text-center">
+            ${hasPost ? '<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check-double"></i> 已後測</span>'
+                      : '<span class="text-[11px] text-slate-400">未填寫</span>'}
+          </td>
+          <td class="p-3 text-center">
+            <button type="button" onclick="selectResident('${res.id}')" class="px-2.5 py-1 text-xs rounded bg-white hover:bg-slate-100 border border-slate-300 font-semibold text-slate-700 transition">
+              選取評估
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateDashboardStats() {
+      const total = residents.length;
+      let preCount = 0;
+      let postCount = 0;
+      let bothCount = 0;
+
+      residents.forEach(r => {
+        const p1 = !!assessments[`${r.id}_pre`];
+        const p2 = !!assessments[`${r.id}_post`];
+        if (p1) preCount++;
+        if (p2) postCount++;
+        if (p1 && p2) bothCount++;
+      });
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statPreCount').textContent = preCount;
+      document.getElementById('statPostCount').textContent = postCount;
+      document.getElementById('statBothCount').textContent = bothCount;
+    }
+
+    /* ==========================================================================
+       7. Add Resident Modal
+       ========================================================================== */
+    function openAddResidentModal() {
+      const nextNum = residents.length + 1;
+      document.getElementById('new_id').value = `RES-${String(nextNum).padStart(3, '0')}`;
+      document.getElementById('new_name').value = '';
+      document.getElementById('addResidentModal').classList.remove('hidden');
+    }
+
+    function closeAddResidentModal() {
+      document.getElementById('addResidentModal').classList.add('hidden');
+    }
+
+    function submitNewResident() {
+      const name = document.getElementById('new_name').value.trim();
+      const id = document.getElementById('new_id').value.trim();
+      const area = document.getElementById('new_area').value;
+      const org = document.getElementById('new_org').value.trim();
+      const gender = document.getElementById('new_gender').value;
+      const age = parseInt(document.getElementById('new_age').value, 10) || '';
+      const cms = document.getElementById('new_cms').value;
+      const bed = document.getElementById('new_bed').value.trim();
+
+      if (!name || !id || !org) {
+        showToast('請確實填寫姓名、編號與機構名稱', 'error');
+        return;
+      }
+
+      if (residents.some(r => r.id === id)) {
+        showToast('此住民編號已存在！請更換編號', 'error');
+        return;
+      }
+
+      const newObj = { id, area, name, org, institution: org, gender, age, cms, bed };
+      residents.unshift(newObj);
+      localStorage.setItem('py_residents', JSON.stringify(residents));
+      populateInstitutionFilters();
+      renderResidentList();
+      updateDashboardStats();
+      closeAddResidentModal();
+      selectResident(id);
+      showToast(`已成功新增住民：${name}`, 'success');
+    }
+
+    /* ==========================================================================
+       8. Assessment Form Interaction & Calculations
+       ========================================================================== */
+    function selectResident(resId) {
+      const res = residents.find(r => r.id === resId);
+      if (!res) return;
+      activeResident = res;
+
+      document.getElementById('activeResId').textContent = res.id;
+      document.getElementById('activeResArea').textContent = res.area || '未分區';
+      document.getElementById('activeResOrg').textContent = res.org;
+      document.getElementById('activeResName').textContent = res.name;
+      document.getElementById('activeResMeta').textContent = `（${res.gender}・${res.age ? res.age + '歲' : '年齡未填'}・CMS第${res.cms || '--'}級）`;
+
+      const sec = document.getElementById('assessmentSection');
+      sec.classList.remove('hidden');
+      renderResidentList();
+      switchTimepoint(activeTimepoint);
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeAssessmentPanel() {
+      document.getElementById('assessmentSection').classList.add('hidden');
+      activeResident = null;
+      renderResidentList();
+    }
+
+    function switchTimepoint(tp) {
+      activeTimepoint = tp;
+      const btnPre = document.getElementById('btnModePre');
+      const btnPost = document.getElementById('btnModePost');
+
+      if (tp === 'pre') {
+        btnPre.className = 'px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-blue-600 text-white shadow';
+        btnPost.className = 'px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white';
+      } else {
+        btnPost.className = 'px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow';
+        btnPre.className = 'px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white';
+      }
+
+      loadFormValues();
+    }
+
+    function loadFormValues() {
+      if (!activeResident) return;
+      const key = `${activeResident.id}_${activeTimepoint}`;
+      const saved = assessments[key] || assessments[`${activeResident.id}_pre`] || {};
+      const isExactRecord = !!assessments[key];
+
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('f_location').value = saved.location || activeResident.org || '';
+      document.getElementById('f_evalDate').value = isExactRecord && saved.evalDate ? saved.evalDate : today;
+      document.getElementById('f_evaluator').value = (isExactRecord && saved.evaluator) ? saved.evaluator : (currentUser || '');
+
+      // Screening
+      for (let i = 1; i <= 6; i++) {
+        const defaultVal = i <= 2 ? 'yes' : 'no';
+        document.getElementById(`scr_q${i}`).value = saved[`scr_q${i}`] || defaultVal;
+        document.getElementById(`scr_n${i}`).value = saved[`scr_n${i}`] || '';
+      }
+      evaluateScreening();
+
+      // Basic Demographics
+      document.getElementById('b_rocYear').value = saved.b_rocYear || '';
+      document.getElementById('b_month').value = saved.b_month || '';
+      document.getElementById('b_day').value = saved.b_day || '';
+      document.getElementById('b_age').value = saved.b_age || activeResident.age || '';
+      document.getElementById('b_gender').value = saved.b_gender || activeResident.gender || '男';
+      document.getElementById('b_cms').value = saved.b_cms || activeResident.cms || '6';
+      document.getElementById('b_stayYear').value = saved.b_stayYear || '';
+      document.getElementById('b_stayMonth').value = saved.b_stayMonth || '';
+      document.getElementById('b_lang').value = saved.b_lang || '台語';
+      document.getElementById('b_marital').value = saved.b_marital || '已婚';
+      document.getElementById('b_edu').value = saved.b_edu || '國小';
+      document.getElementById('b_religion').value = saved.b_religion || '道教';
+      document.getElementById('b_religionOther').value = saved.b_religionOther || '';
+      document.getElementById('b_chronicOther').value = saved.b_chronicOther || '';
+
+      const chronics = saved.chronics || [];
+      document.querySelectorAll('input[name="chronic"]').forEach(cb => {
+        cb.checked = chronics.includes(cb.value);
+      });
+      updateChronicCount();
+
+      // Barthel
+      BARTHEL_ITEMS.forEach(item => {
+        document.getElementById(item.id).value = (isExactRecord && saved[item.id] !== undefined) ? saved[item.id] : item.options[item.options.length - 1].v;
+      });
+
+      // MNA
+      MNA_ITEMS.forEach(item => {
+        document.getElementById(item.id).value = (isExactRecord && saved[item.id] !== undefined) ? saved[item.id] : item.options[0].v;
+      });
+
+      // Grip & Bike
+      document.getElementById('grip_hand').value = saved.grip_hand || '優勢手';
+      document.getElementById('grip_val').value = isExactRecord && saved.gripVal !== undefined ? saved.gripVal : '';
+      document.getElementById('bike_time').value = saved.bike_time || 5;
+      document.getElementById('bike_res').value = saved.bike_res || 1;
+      document.getElementById('bike_dist').value = isExactRecord && saved.bikeDist !== undefined ? saved.bikeDist : '';
+
+      // Section 7
+      document.getElementById('rec_pressure').value = isExactRecord ? (saved.rec_pressure || '') : '';
+      document.getElementById('rec_pressureNote').value = isExactRecord ? (saved.rec_pressureNote || '') : '';
+      document.getElementById('rec_rehab').value = isExactRecord ? (saved.rec_rehab || '') : '';
+      document.getElementById('rec_rehabNote').value = isExactRecord ? (saved.rec_rehabNote || '') : '';
+      document.getElementById('rec_pneumonia').value = isExactRecord ? (saved.rec_pneumonia || '') : '';
+      document.getElementById('rec_pneumoniaNote').value = isExactRecord ? (saved.rec_pneumoniaNote || '') : '';
+
+      recalcScores();
+      recalcKPIs();
+    }
+
+    function evaluateScreening() {
+      const q1 = document.getElementById('scr_q1').value === 'yes';
+      const q2 = document.getElementById('scr_q2').value === 'yes';
+      const q3 = document.getElementById('scr_q3').value === 'no';
+      const q4 = document.getElementById('scr_q4').value === 'no';
+      const q5 = document.getElementById('scr_q5').value === 'no';
+      const q6 = document.getElementById('scr_q6').value === 'no';
+
+      const pass = q1 && q2 && q3 && q4 && q5 && q6;
+      const badge = document.getElementById('screeningResultBadge');
+      if (pass) {
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> 符合收案條件';
+      } else {
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800';
+        badge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> 不符合收案條件';
+      }
+      return pass;
+    }
+
+    function updateChronicCount() {
+      const checked = Array.from(document.querySelectorAll('input[name="chronic"]:checked'));
+      document.getElementById('chronicCountBadge').textContent = `共 ${checked.length} 種`;
+    }
+
+    function recalcScores() {
+      // Barthel sum
+      let bSum = 0;
+      BARTHEL_ITEMS.forEach(item => {
+        bSum += parseFloat(document.getElementById(item.id).value || 0);
+      });
+      let bLevel = '完全依賴';
+      if (bSum === 100) bLevel = '完全獨立';
+      else if (bSum >= 91) bLevel = '輕度依賴';
+      else if (bSum >= 61) bLevel = '中度依賴';
+      else if (bSum >= 21) bLevel = '重度依賴';
+      document.getElementById('barthelTotalBadge').textContent = `${bSum} 分（${bLevel}）`;
+
+      // MNA sum
+      let screenSum = 0;
+      ['mna_A', 'mna_B', 'mna_C', 'mna_D', 'mna_E', 'mna_F'].forEach(id => {
+        screenSum += parseFloat(document.getElementById(id).value || 0);
+      });
+      let totalSum = screenSum;
+      ['mna_G', 'mna_H', 'mna_I', 'mna_J', 'mna_K', 'mna_L', 'mna_M', 'mna_N', 'mna_O', 'mna_P', 'mna_Q', 'mna_R'].forEach(id => {
+        totalSum += parseFloat(document.getElementById(id).value || 0);
+      });
+
+      let mnaStatus = '營養不良';
+      if (totalSum >= 24) mnaStatus = '正常營養狀況';
+      else if (totalSum >= 17) mnaStatus = '有營養不良風險';
+
+      document.getElementById('mnaScreenBadge').textContent = `A-F 篩選：${screenSum} / 14 分`;
+      document.getElementById('mnaTotalBadge').textContent = `總分：${totalSum} / 30 分（${mnaStatus}）`;
+
+      updateOverviewTable();
+      return { bSum, screenSum, totalSum };
+    }
+
+    function updateOverviewTable() {
+      if (!activeResident) return;
+      const pre = assessments[`${activeResident.id}_pre`] || {};
+      const post = assessments[`${activeResident.id}_post`] || {};
+
+      const curBarthel = BARTHEL_ITEMS.reduce((acc, it) => acc + parseFloat(document.getElementById(it.id).value || 0), 0);
+      const curMna = MNA_ITEMS.reduce((acc, it) => acc + parseFloat(document.getElementById(it.id).value || 0), 0);
+      const curCms = document.getElementById('b_cms').value;
+      const curPressure = document.getElementById('rec_pressure').value;
+      const curRehab = document.getElementById('rec_rehab').value;
+      const curPneumonia = document.getElementById('rec_pneumonia').value;
+      const curGrip = document.getElementById('grip_val').value;
+      const curBike = document.getElementById('bike_dist').value;
+
+      const bPre = activeTimepoint === 'pre' ? curBarthel : pre.barthelTotal;
+      const bPost = activeTimepoint === 'post' ? curBarthel : post.barthelTotal;
+      document.getElementById('ov_barthel_pre').textContent = bPre !== undefined ? `${bPre} 分` : '--';
+      document.getElementById('ov_barthel_post').textContent = bPost !== undefined ? `${bPost} 分` : '--';
+      document.getElementById('ov_barthel_diff').textContent = (bPre !== undefined && bPost !== undefined) ? `${bPost - bPre >= 0 ? '+' : ''}${bPost - bPre} 分` : '--';
+
+      const mPre = activeTimepoint === 'pre' ? curMna : pre.mnaTotal;
+      const mPost = activeTimepoint === 'post' ? curMna : post.mnaTotal;
+      document.getElementById('ov_mna_pre').textContent = mPre !== undefined ? `${mPre} 分` : '--';
+      document.getElementById('ov_mna_post').textContent = mPost !== undefined ? `${mPost} 分` : '--';
+      document.getElementById('ov_mna_diff').textContent = (mPre !== undefined && mPost !== undefined) ? `${(mPost - mPre) >= 0 ? '+' : ''}${(mPost - mPre).toFixed(1)} 分` : '--';
+
+      const gPre = activeTimepoint === 'pre' ? curGrip : pre.gripVal;
+      const gPost = activeTimepoint === 'post' ? curGrip : post.gripVal;
+      document.getElementById('ov_grip_pre').textContent = gPre ? `${gPre} kg` : '--';
+      document.getElementById('ov_grip_post').textContent = gPost ? `${gPost} kg` : '--';
+      document.getElementById('ov_grip_diff').textContent = (gPre && gPost && parseFloat(gPre) > 0) ? `${(((parseFloat(gPost) - parseFloat(gPre)) / parseFloat(gPre)) * 100).toFixed(1)}%` : '--';
+
+      const bkPre = activeTimepoint === 'pre' ? curBike : pre.bikeDist;
+      const bkPost = activeTimepoint === 'post' ? curBike : post.bikeDist;
+      document.getElementById('ov_bike_pre').textContent = bkPre ? `${bkPre} km` : '--';
+      document.getElementById('ov_bike_post').textContent = bkPost ? `${bkPost} km` : '--';
+      document.getElementById('ov_bike_diff').textContent = (bkPre && bkPost && parseFloat(bkPre) > 0) ? `${(((parseFloat(bkPost) - parseFloat(bkPre)) / parseFloat(bkPre)) * 100).toFixed(1)}%` : '--';
+
+      const cPre = activeTimepoint === 'pre' ? curCms : pre.b_cms;
+      const cPost = activeTimepoint === 'post' ? curCms : post.b_cms;
+      document.getElementById('ov_cms_pre').textContent = cPre ? `第 ${cPre} 級` : '--';
+      document.getElementById('ov_cms_post').textContent = cPost ? `第 ${cPost} 級` : '--';
+      document.getElementById('ov_cms_diff').textContent = (cPre && cPost) ? (cPre === cPost ? '維持' : `第${cPre}級 → 第${cPost}級`) : '--';
+
+      document.getElementById('ov_pressure_pre').textContent = (activeTimepoint === 'pre' ? curPressure : pre.rec_pressure) || '--';
+      document.getElementById('ov_pressure_post').textContent = (activeTimepoint === 'post' ? curPressure : post.rec_pressure) || '--';
+      document.getElementById('ov_rehab_pre').textContent = (activeTimepoint === 'pre' ? curRehab : pre.rec_rehab) || '--';
+      document.getElementById('ov_rehab_post').textContent = (activeTimepoint === 'post' ? curRehab : post.rec_rehab) || '--';
+      document.getElementById('ov_pneumonia_pre').textContent = (activeTimepoint === 'pre' ? curPneumonia : pre.rec_pneumonia) || '--';
+      document.getElementById('ov_pneumonia_post').textContent = (activeTimepoint === 'post' ? curPneumonia : post.rec_pneumonia) || '--';
+    }
+
+    function recalcKPIs() {
+      if (!activeResident) return;
+      updateOverviewTable();
+      const preRec = assessments[`${activeResident.id}_pre`];
+      const postRec = assessments[`${activeResident.id}_post`];
+
+      const curGrip = parseFloat(document.getElementById('grip_val').value);
+      const curBike = parseFloat(document.getElementById('bike_dist').value);
+
+      const preGrip = activeTimepoint === 'pre' ? curGrip : (preRec ? parseFloat(preRec.gripVal) : NaN);
+      const postGrip = activeTimepoint === 'post' ? curGrip : (postRec ? parseFloat(postRec.gripVal) : NaN);
+
+      document.getElementById('dispGripPre').textContent = !isNaN(preGrip) ? preGrip : '--';
+      document.getElementById('dispGripPost').textContent = !isNaN(postGrip) ? postGrip : '--';
+
+      const gripBadge = document.getElementById('gripTargetBadge');
+      if (!isNaN(preGrip) && preGrip > 0 && !isNaN(postGrip)) {
+        const rate = ((postGrip - preGrip) / preGrip) * 100;
+        document.getElementById('dispGripRate').textContent = `${rate.toFixed(1)}%`;
+        if (rate >= 10) {
+          gripBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+          gripBadge.textContent = '達標（增加率 ≥ 10%）';
+        } else {
+          gripBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+          gripBadge.textContent = '未達標（< 10%）';
+        }
+      } else {
+        document.getElementById('dispGripRate').textContent = '--%';
+        gripBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700';
+        gripBadge.textContent = '待計算（達標 ≥ 10%）';
+      }
+
+      const preBike = activeTimepoint === 'pre' ? curBike : (preRec ? parseFloat(preRec.bikeDist) : NaN);
+      const postBike = activeTimepoint === 'post' ? curBike : (postRec ? parseFloat(postRec.bikeDist) : NaN);
+
+      document.getElementById('dispBikePre').textContent = !isNaN(preBike) ? preBike : '--';
+      document.getElementById('dispBikePost').textContent = !isNaN(postBike) ? postBike : '--';
+
+      const bikeBadge = document.getElementById('bikeTargetBadge');
+      if (!isNaN(preBike) && preBike > 0 && !isNaN(postBike)) {
+        const rate = ((postBike - preBike) / preBike) * 100;
+        document.getElementById('dispBikeRate').textContent = `${rate.toFixed(1)}%`;
+        if (rate >= 15) {
+          bikeBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+          bikeBadge.textContent = '達標（進步率 ≥ 15%）';
+        } else {
+          bikeBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+          bikeBadge.textContent = '未達標（< 15%）';
+        }
+      } else {
+        document.getElementById('dispBikeRate').textContent = '--%';
+        bikeBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700';
+        bikeBadge.textContent = '待計算（達標 ≥ 15%）';
+      }
+    }
+
+    function saveCurrentAssessment(e) {
+      e.preventDefault();
+      if (!activeResident) return;
+
+      const scores = recalcScores();
+      const screeningPass = evaluateScreening();
+      const chronics = Array.from(document.querySelectorAll('input[name="chronic"]:checked')).map(c => c.value);
+
+      const record = {
+        residentId: activeResident.id,
+        area: activeResident.area,
+        org: activeResident.org,
+        name: activeResident.name,
+        timepoint: activeTimepoint,
+        location: document.getElementById('f_location').value.trim(),
+        evalDate: document.getElementById('f_evalDate').value,
+        evaluator: document.getElementById('f_evaluator').value.trim(),
+        screeningPass,
+        b_rocYear: document.getElementById('b_rocYear').value,
+        b_month: document.getElementById('b_month').value,
+        b_day: document.getElementById('b_day').value,
+        b_age: document.getElementById('b_age').value,
+        b_gender: document.getElementById('b_gender').value,
+        b_cms: document.getElementById('b_cms').value,
+        b_stayYear: document.getElementById('b_stayYear').value,
+        b_stayMonth: document.getElementById('b_stayMonth').value,
+        b_lang: document.getElementById('b_lang').value,
+        b_marital: document.getElementById('b_marital').value,
+        b_edu: document.getElementById('b_edu').value,
+        b_religion: document.getElementById('b_religion').value,
+        b_religionOther: document.getElementById('b_religionOther').value,
+        b_chronicOther: document.getElementById('b_chronicOther').value,
+        chronics,
+        barthelTotal: scores.bSum,
+        mnaScreenScore: scores.screenSum,
+        mnaTotal: scores.totalSum,
+        grip_hand: document.getElementById('grip_hand').value,
+        gripVal: document.getElementById('grip_val').value,
+        bike_time: document.getElementById('bike_time').value,
+        bike_res: document.getElementById('bike_res').value,
+        bikeDist: document.getElementById('bike_dist').value,
+        rec_pressure: document.getElementById('rec_pressure').value,
+        rec_pressureNote: document.getElementById('rec_pressureNote').value,
+        rec_rehab: document.getElementById('rec_rehab').value,
+        rec_rehabNote: document.getElementById('rec_rehabNote').value,
+        rec_pneumonia: document.getElementById('rec_pneumonia').value,
+        rec_pneumoniaNote: document.getElementById('rec_pneumoniaNote').value,
+        updatedAt: new Date().toISOString()
+      };
+
+      for (let i = 1; i <= 6; i++) {
+        record[`scr_q${i}`] = document.getElementById(`scr_q${i}`).value;
+        record[`scr_n${i}`] = document.getElementById(`scr_n${i}`).value;
+      }
+      BARTHEL_ITEMS.forEach(item => { record[item.id] = document.getElementById(item.id).value; });
+      MNA_ITEMS.forEach(item => { record[item.id] = document.getElementById(item.id).value; });
+
+      const key = `${activeResident.id}_${activeTimepoint}`;
+      assessments[key] = record;
+      localStorage.setItem('py_assessments', JSON.stringify(assessments));
+
+      renderResidentList();
+      updateDashboardStats();
+      recalcKPIs();
+
+      const label = activeTimepoint === 'pre' ? '前測' : '後測';
+      showToast(`已儲存 ${activeResident.name} 的「${label}」紀錄！`, 'success');
+
+      if (gasUrl) {
+        pushToGoogleSheet(record);
+      }
+    }
+
+    /* ==========================================================================
+       9. Google Cloud & CSV Export Logic
+       ========================================================================== */
+    function openCloudModal() {
+      document.getElementById('cloudModal').classList.remove('hidden');
+    }
+
+    function closeCloudModal() {
+      document.getElementById('cloudModal').classList.add('hidden');
+    }
+
+    function saveGasUrl() {
+      gasUrl = document.getElementById('gasUrlInput').value.trim();
+      localStorage.setItem('py_gas_url', gasUrl);
+      updateCloudStatusBadge();
+      showToast(gasUrl ? '已儲存 Google 雲端試算表網址' : '已切換為純本機模式', 'success');
+    }
+
+    function updateCloudStatusBadge() {
+      const btn = document.getElementById('cloudStatusBtn');
+      const dot = document.getElementById('cloudDot');
+      const txt = document.getElementById('cloudStatusText');
+      if (gasUrl) {
+        btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition';
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        txt.textContent = 'Google 雲端已連線';
+      } else {
+        btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition';
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+        txt.textContent = '本機離線儲存';
+      }
+    }
+
+    async function pushToGoogleSheet(record) {
+      if (!gasUrl) return;
+      try {
+        await fetch(gasUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(record)
+        });
+        showToast('已同步傳送至 Google 雲端試算表', 'info');
+      } catch (err) {
+        showToast('雲端傳送失敗，資料已安全保留於本機', 'error');
+      }
+    }
+
+    async function syncAllToCloud() {
+      if (!gasUrl) {
+        showToast('請先輸入並儲存 Google Apps Script 網址', 'error');
+        return;
+      }
+      const keys = Object.keys(assessments);
+      if (keys.length === 0) {
+        showToast('目前尚無已儲存的評估紀錄可上傳', 'info');
+        return;
+      }
+      for (const k of keys) {
+        await pushToGoogleSheet(assessments[k]);
+      }
+      showToast(`已完成 ${keys.length} 筆評估紀錄雲端批次上傳！`, 'success');
+    }
+
+    function copyGasScript() {
+      const textarea = document.getElementById('gasSampleCode');
+      textarea.select();
+      document.execCommand('copy');
+      showToast('已複製 Google Apps Script 程式碼！', 'success');
+    }
+
+    function exportAllCSV() {
+      const headers = [
+        '受試者ID', '區域', '機構名稱', '姓名', '性別', '實歲', 'CMS等級',
+        '前測日期', '前測施測者', '前測巴氏總分', '前測MNA總分', '前測手握力(kg)', '前測腳踏車(km)',
+        '後測日期', '後測施測者', '後測巴氏總分', '後測MNA總分', '後測手握力(kg)', '後測腳踏車(km)',
+        '握力增加率(%)', '腳踏車進步率(%)'
+      ];
+
+      const rows = residents.map(r => {
+        const pre = assessments[`${r.id}_pre`] || {};
+        const post = assessments[`${r.id}_post`] || {};
+
+        let gripRate = '';
+        if (pre.gripVal && post.gripVal && parseFloat(pre.gripVal) > 0) {
+          gripRate = (((parseFloat(post.gripVal) - parseFloat(pre.gripVal)) / parseFloat(pre.gripVal)) * 100).toFixed(1) + '%';
+        }
+        let bikeRate = '';
+        if (pre.bikeDist && post.bikeDist && parseFloat(pre.bikeDist) > 0) {
+          bikeRate = (((parseFloat(post.bikeDist) - parseFloat(pre.bikeDist)) / parseFloat(pre.bikeDist)) * 100).toFixed(1) + '%';
+        }
+
+        return [
+          r.id, r.area, r.org, r.name, r.gender, r.age, r.cms,
+          pre.evalDate || '', pre.evaluator || '', pre.barthelTotal ?? '', pre.mnaTotal ?? '', pre.gripVal ?? '', pre.bikeDist ?? '',
+          post.evalDate || '', post.evaluator || '', post.barthelTotal ?? '', post.mnaTotal ?? '', post.gripVal ?? '', post.bikeDist ?? '',
+          gripRate, bikeRate
+        ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
+      });
+
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `屏東雨林計畫_個案前後測總表_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('已匯出 CSV 報表檔案！', 'success');
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const colors = {
+        success: 'bg-emerald-700 text-white',
+        error: 'bg-rose-600 text-white',
+        info: 'bg-slate-800 text-white'
+      };
+      const el = document.createElement('div');
+      el.className = `px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 transition-all duration-300 ${colors[type] || colors.info}`;
+      el.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-info'}"></i><span>${msg}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
