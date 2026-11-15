@@ -25,9 +25,12 @@
         <p class="text-teal-100 text-sm mt-1">個案評估與前後測數據紀錄平台</p>
       </div>
       <form id="loginForm" class="p-6 space-y-4">
-        <div id="cloudSyncLoginNotice" class="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-3 py-2 rounded-lg flex items-center justify-between">
+        <div id="cloudSyncLoginNotice" class="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-3 py-2 rounded-lg flex items-center justify-between gap-2">
           <span id="loginCloudStatusText">⏳ 正在從 Google 雲端同步最新帳號清冊...</span>
-          <button type="button" onclick="syncFromCloud(true)" class="underline font-bold hover:text-sky-950">立即重整</button>
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="syncFromCloud(true)" class="underline font-bold hover:text-sky-950">重整</button>
+            <button type="button" onclick="openGasModal()" class="underline font-bold text-slate-600 hover:text-slate-900">設定網址</button>
+          </div>
         </div>
         <div id="loginError" class="hidden bg-rose-50 border border-rose-200 text-rose-700 text-xs px-3 py-2.5 rounded-lg font-medium"></div>
         <div>
@@ -76,7 +79,7 @@
             <span>住民名冊：<strong id="totalResidentBadge" class="text-teal-700">124</strong> 位</span>
             <span>•</span>
             <span id="cloudStatusBadge" class="inline-flex items-center gap-1 text-emerald-700 font-medium">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 已綁定最新 GAS 雲端
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 雲端雙向連線就緒
             </span>
           </div>
         </div>
@@ -307,7 +310,7 @@
               <input type="date" id="evalDate" onchange="calculateAgeFromBirthday()" class="w-full px-3 py-2 border border-slate-300 rounded-lg" />
             </div>
 
-            <!-- 新增：民國出生年月日輸入，自動計算實歲 -->
+            <!-- 民國出生年月日輸入，自動計算實歲 -->
             <div class="sm:col-span-2">
               <label class="block font-semibold text-slate-700 mb-1">
                 出生年月日（輸入民國年自動換算實歲）
@@ -689,19 +692,16 @@
       </div>
       <div class="p-5 space-y-4 text-xs">
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-lg">
-          ✅ 系統已預設綁定您的最新 GAS Web App 網址，並支援啟動時自動從雲端拉取最新帳號、住民名冊與前後測紀錄。
+          📌 請貼上新部署的 Google Apps Script 網頁應用程式網址（結尾為 <code>/exec</code>），儲存後系統將自動雙向連線。
         </div>
         <div>
           <label class="block font-semibold text-slate-700 mb-1">GAS Web App 部署網址 (/exec)</label>
-          <input type="url" id="gasUrlInput"
+          <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
             class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono text-[11px]" />
         </div>
         <div class="flex gap-2">
           <button type="button" onclick="saveGasUrl()" class="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg">
-            儲存網址設定
-          </button>
-          <button type="button" onclick="resetDefaultGasUrl()" class="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg">
-            恢復預設網址
+            儲存並立即連線測試
           </button>
           <button type="button" onclick="testGasConnection()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-lg">
             📡 測試連線
@@ -717,7 +717,8 @@
 
   <!-- ================= 7. 核心邏輯與完整 124 位住民資料庫 ================= -->
   <script>
-    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxsjBk4O4iZw0AVRLpBCf__VxqvSGyUMumnJjrLh6mkvPJFzXZcqQz7fFeYDJjRgxbp/exec';
+    // 請於此處填入您重新部署後的 GAS Web App 網址（或直接在網頁右上角「GAS 設定」貼上儲存）
+    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbw3-gv0529TENdSKdAUc2aMiWc_hMeNjw2gc0oJgZmZiuKN-bF-y4JZF4Zd_vUKgp5q/exec';
 
     const DEFAULT_ACCOUNTS = [
       { username: 'admin', password: 'rainforest123', name: '計畫總管理者', role: 'admin' },
@@ -793,386 +794,4 @@
       { id: 'RES-065', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 2, name: '吳秀連', cms: '7', age: 86, idNo: 'T200373025' },
       { id: 'RES-066', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 3, name: '林金土', cms: '7', age: 83, idNo: 'T101593421' },
       { id: 'RES-067', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 4, name: '李黃金枝', cms: '6', age: 87, idNo: 'T200216123' },
-      { id: 'RES-068', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 5, name: '黃天化', cms: '7', age: 78, idNo: 'T101673620' },
-      { id: 'RES-069', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 6, name: '鄭阿蘭', cms: '6', age: 84, idNo: 'T200925769' },
-      { id: 'RES-070', area: 'C 區', institution: '寶建春風護理之家', seq: 1, name: '蘇清標', cms: '7', age: 81, idNo: 'T100475764' },
-      { id: 'RES-071', area: 'C 區', institution: '寶建春風護理之家', seq: 2, name: '潘陳桂香', cms: '6', age: 88, idNo: 'T200670350' },
-      { id: 'RES-072', area: 'C 區', institution: '寶建春風護理之家', seq: 3, name: '楊春生', cms: '7', age: 85, idNo: 'T101967145' },
-      { id: 'RES-073', area: 'C 區', institution: '寶建春風護理之家', seq: 4, name: '鍾美雲', cms: '6', age: 79, idNo: 'T200424689' },
-      { id: 'RES-074', area: 'C 區', institution: '寶建春風護理之家', seq: 5, name: '曾金福', cms: '7', age: 83, idNo: 'T101389409' },
-      { id: 'RES-075', area: 'C 區', institution: '寶建春風護理之家', seq: 6, name: '葉秀月', cms: '7', age: 87, idNo: 'T200547678' },
-      { id: 'RES-076', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 1, name: '戴阿興', cms: '6', age: 76, idNo: 'T101940582' },
-      { id: 'RES-077', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 2, name: '邱蔡秀花', cms: '7', age: 89, idNo: 'T200177729' },
-      { id: 'RES-078', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 3, name: '許福來', cms: '7', age: 82, idNo: 'T101981289' },
-      { id: 'RES-079', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 4, name: '林李阿幼', cms: '6', age: 85, idNo: 'T200366628' },
-      { id: 'RES-080', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 5, name: '郭文雄', cms: '7', age: 80, idNo: 'T100498230' },
-      { id: 'RES-081', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 6, name: '江黃阿好', cms: '6', age: 86, idNo: 'T200845348' },
-      { id: 'RES-082', area: 'C 區', institution: '長春園住宿長照機構', seq: 1, name: '陳秋生', cms: '7', age: 84, idNo: 'T120732340' },
-      { id: 'RES-083', area: 'C 區', institution: '長春園住宿長照機構', seq: 2, name: '黃李阿鳳', cms: '6', age: 88, idNo: 'T200596377' },
-      { id: 'RES-084', area: 'C 區', institution: '長春園住宿長照機構', seq: 3, name: '李順安', cms: '7', age: 81, idNo: 'S100763768' },
-      { id: 'RES-085', area: 'C 區', institution: '長春園住宿長照機構', seq: 4, name: '張王碧雲', cms: '6', age: 79, idNo: 'T200609388' },
-      { id: 'RES-086', area: 'C 區', institution: '長春園住宿長照機構', seq: 5, name: '王添壽', cms: '7', age: 85, idNo: 'T101488339' },
-      { id: 'RES-087', area: 'C 區', institution: '長春園住宿長照機構', seq: 6, name: '戴阿滿', cms: '7', age: 90, idNo: 'T201726588' },
-      { id: 'RES-088', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 1, name: '蔡春福', cms: '6', age: 83, idNo: 'T101673620' },
-      { id: 'RES-089', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 2, name: '潘秀蓮', cms: '7', age: 87, idNo: 'T201988075' },
-      { id: 'RES-090', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 3, name: '林萬得', cms: '6', age: 78, idNo: 'T100113483' },
-      { id: 'RES-091', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 4, name: '曾陳春香', cms: '7', age: 86, idNo: 'T202483444' },
-      { id: 'RES-092', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 5, name: '劉金龍', cms: '7', age: 82, idNo: 'T101297779' },
-      { id: 'RES-093', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 6, name: '黃阿招', cms: '6', age: 89, idNo: 'T200595307' },
-      { id: 'RES-094', area: 'D 區', institution: '康乃心護理之家', seq: 1, name: '邱德和', cms: '7', age: 84, idNo: 'T101593421' },
-      { id: 'RES-095', area: 'D 區', institution: '康乃心護理之家', seq: 2, name: '蘇林富美', cms: '6', age: 81, idNo: 'T200373025' },
-      { id: 'RES-096', area: 'D 區', institution: '康乃心護理之家', seq: 3, name: '張明德', cms: '7', age: 88, idNo: 'T100475764' },
-      { id: 'RES-097', area: 'D 區', institution: '康乃心護理之家', seq: 4, name: '吳秀連', cms: '6', age: 85, idNo: 'T200216123' },
-      { id: 'RES-098', area: 'D 區', institution: '康乃心護理之家', seq: 5, name: '陳正男', cms: '7', age: 80, idNo: 'T101967145' },
-      { id: 'RES-099', area: 'D 區', institution: '康乃心護理之家', seq: 6, name: '林玉秀', cms: '7', age: 87, idNo: 'T200925769' },
-      { id: 'RES-100', area: 'D 區', institution: '長榮綜合長照機構', seq: 1, name: '黃新發', cms: '6', age: 79, idNo: 'T101389409' },
-      { id: 'RES-101', area: 'D 區', institution: '長榮綜合長照機構', seq: 2, name: '廖林金葉', cms: '7', age: 86, idNo: 'T200670350' },
-      { id: 'RES-102', area: 'D 區', institution: '長榮綜合長照機構', seq: 3, name: '李朝琴', cms: '6', age: 83, idNo: 'T101940582' },
-      { id: 'RES-103', area: 'D 區', institution: '長榮綜合長照機構', seq: 4, name: '潘林秀英', cms: '7', age: 89, idNo: 'T200424689' },
-      { id: 'RES-104', area: 'D 區', institution: '長榮綜合長照機構', seq: 5, name: '尤金德', cms: '7', age: 82, idNo: 'T101981289' },
-      { id: 'RES-105', area: 'D 區', institution: '長榮綜合長照機構', seq: 6, name: '戴蔡秀雲', cms: '6', age: 85, idNo: 'T200547678' },
-      { id: 'RES-106', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 1, name: '徐林靜妹', cms: '7', age: 86, idNo: '' },
-      { id: 'RES-107', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 2, name: '馮秀香', cms: '7', age: 85, idNo: '' },
-      { id: 'RES-108', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 3, name: '潘李新妹', cms: '6', age: 88, idNo: '' },
-      { id: 'RES-109', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 4, name: '潘玉華', cms: '6', age: 79, idNo: '' },
-      { id: 'RES-110', area: 'D 區', institution: '大愛護理之家', seq: 1, name: '林雄', cms: '6', age: 77, idNo: 'T100498230' },
-      { id: 'RES-111', area: 'D 區', institution: '大愛護理之家', seq: 2, name: '黃同榮', cms: '7', age: 69, idNo: 'T120732340' },
-      { id: 'RES-112', area: 'D 區', institution: '大愛護理之家', seq: 3, name: '徐崇德', cms: '6', age: 87, idNo: 'S100763768' },
-      { id: 'RES-113', area: 'D 區', institution: '大愛護理之家', seq: 4, name: '余香', cms: '7', age: 82, idNo: 'T201988075' },
-      { id: 'RES-114', area: 'D 區', institution: '大愛護理之家', seq: 5, name: '陳林愛玉', cms: '7', age: 100, idNo: 'T201980622' },
-      { id: 'RES-115', area: 'D 區', institution: '大愛護理之家', seq: 6, name: '黃吳耐', cms: '6', age: 86, idNo: 'T202483444' },
-      { id: 'RES-116', area: 'D 區', institution: '南門綜合長照機構', seq: 1, name: '李清', cms: '7', age: 82, idNo: 'T100475764' },
-      { id: 'RES-117', area: 'D 區', institution: '南門綜合長照機構', seq: 2, name: '黃金榮', cms: '7', age: 73, idNo: 'T101967145' },
-      { id: 'RES-118', area: 'D 區', institution: '南門綜合長照機構', seq: 3, name: '盧成吉', cms: '6', age: 91, idNo: 'T101389409' },
-      { id: 'RES-119', area: 'D 區', institution: '南門綜合長照機構', seq: 4, name: '李清義', cms: '7', age: 82, idNo: 'T100475764' },
-      { id: 'RES-120', area: 'D 區', institution: '南門綜合長照機構', seq: 5, name: '柯安全', cms: '6', age: 74, idNo: 'T101940582' },
-      { id: 'RES-121', area: 'D 區', institution: '南門綜合長照機構', seq: 6, name: '尤新盛', cms: '6', age: 71, idNo: 'T101981289' },
-      { id: 'RES-122', area: 'D 區', institution: '吾老莊住宿長照機構', seq: 1, name: '柯綿花', cms: '6', age: '', idNo: '' },
-      { id: 'RES-123', area: 'D 區', institution: '吾老莊住宿長照機構', seq: 2, name: '謝李春芳', cms: '7', age: '', idNo: '' },
-      { id: 'RES-124', area: 'D 區', institution: '吾老莊住宿長照機構', seq: 3, name: '江范金英', cms: '6', age: '', idNo: '' }
-    ];
-
-    const CHRONIC_LIST = ['關節炎', '心臟病', '高血壓', '中風', '糖尿病', '尿毒症', '甲狀腺機能障礙', 'COPD', '消化性潰瘍', '痛風', '帕金森氏症', '癌症'];
-
-    const BARTHEL_ITEMS = [
-      { id: 'b1', title: '1. 進食', opts: [{ v: 10, t: '10分：獨立進食' }, { v: 5, t: '5分：需協助切好/穿脫輔具' }, { v: 0, t: '0分：無法自行取食' }] },
-      { id: 'b2', title: '2. 移動', opts: [{ v: 15, t: '15分：獨立完成' }, { v: 10, t: '10分：需稍微扶持或口頭指導' }, { v: 5, t: '5分：可自行坐起但移位需協助' }, { v: 0, t: '0分：需協助坐起或兩人移位' }] },
-      { id: 'b3', title: '3. 個人衛生', opts: [{ v: 5, t: '5分：可自行刷牙洗臉梳頭' }, { v: 0, t: '0分：需別人協助盥洗' }] },
-      { id: 'b4', title: '4. 如廁', opts: [{ v: 10, t: '10分：可自行上下馬桶清潔' }, { v: 5, t: '5分：需協助保持平衡或整理衣物' }, { v: 0, t: '0分：無法自行如廁' }] },
-      { id: 'b5', title: '5. 沐浴', opts: [{ v: 5, t: '5分：可自行盆浴或淋浴' }, { v: 0, t: '0分：需別人協助沐浴' }] },
-      { id: 'b6', title: '6. 步行', opts: [{ v: 15, t: '15分：獨立行走50公尺以上' }, { v: 10, t: '10分：需稍微扶持走50公尺' }, { v: 5, t: '5分：獨立操作輪椅推50公尺' }, { v: 0, t: '0分：需要別人幫忙' }] },
-      { id: 'b7', title: '7. 上下樓梯', opts: [{ v: 10, t: '10分：可自行上下樓梯' }, { v: 5, t: '5分：需稍微協助或口頭指導' }, { v: 0, t: '0分：無法上下樓' }] },
-      { id: 'b8', title: '8. 穿脫衣褲鞋襪', opts: [{ v: 10, t: '10分：可自行穿脫' }, { v: 5, t: '5分：協助下可完成一半以上' }, { v: 0, t: '0分：需要完全幫忙' }] },
-      { id: 'b9', title: '9. 大便控制', opts: [{ v: 10, t: '10分：不會失禁' }, { v: 5, t: '5分：偶爾失禁(每週≤1次)' }, { v: 0, t: '0分：失禁或需灌腸' }] },
-      { id: 'b10', title: '10. 小便控制', opts: [{ v: 10, t: '10分：日夜皆不會尿失禁' }, { v: 5, t: '5分：偶爾失禁(每週≤1次)' }, { v: 0, t: '0分：失禁或需導尿' }] }
-    ];
-
-    const MNA_ITEMS = [
-      { id: 'mA', title: 'A. 近三個月食量減少？', opts: [{ v: 2, t: '2分：沒有改變' }, { v: 1, t: '1分：中度減少' }, { v: 0, t: '0分：嚴重減少' }] },
-      { id: 'mB', title: 'B. 近三個月體重下降？', opts: [{ v: 3, t: '3分：沒有下降' }, { v: 2, t: '2分：下降1-3公斤' }, { v: 1, t: '1分：不知道' }, { v: 0, t: '0分：下降>3公斤' }] },
-      { id: 'mC', title: 'C. 活動能力', opts: [{ v: 2, t: '2分：可以外出' }, { v: 1, t: '1分：可離床但不能外出' }, { v: 0, t: '0分：長期臥床或坐輪椅' }] },
-      { id: 'mD', title: 'D. 近三個月心理創傷/急性病？', opts: [{ v: 2, t: '2分：沒有' }, { v: 0, t: '0分：有' }] },
-      { id: 'mE', title: 'E. 精神心理問題', opts: [{ v: 2, t: '2分：無問題' }, { v: 1, t: '1分：輕度痴呆' }, { v: 0, t: '0分：嚴重痴呆或抑鬱' }] },
-      { id: 'mF', title: 'F. 身體質量指數 (BMI)', opts: [{ v: 3, t: '3分：BMI ≥ 23' }, { v: 2, t: '2分：BMI 21~22.9' }, { v: 1, t: '1分：BMI 19~20.9' }, { v: 0, t: '0分：BMI < 19' }] },
-      { id: 'mG', title: 'G. 是否獨立生活？', opts: [{ v: 0, t: '0分：否(住機構)' }, { v: 1, t: '1分：是' }] },
-      { id: 'mH', title: 'H. 每天服用3種以上處方藥？', opts: [{ v: 0, t: '0分：是' }, { v: 1, t: '1分：否' }] },
-      { id: 'mI', title: 'I. 是否有褥瘡或皮膚潰瘍？', opts: [{ v: 1, t: '1分：否' }, { v: 0, t: '0分：是' }] },
-      { id: 'mJ', title: 'J. 每天吃多少次主餐？', opts: [{ v: 2, t: '2分：3餐' }, { v: 1, t: '1分：2餐' }, { v: 0, t: '0分：1餐' }] },
-      { id: 'mK', title: 'K. 蛋白質攝取量指標', opts: [{ v: 1, t: '1.0分：3個「是」' }, { v: 0.5, t: '0.5分：2個「是」' }, { v: 0, t: '0.0分：0或1個「是」' }] },
-      { id: 'mL', title: 'L. 每天進食兩份以上蔬果？', opts: [{ v: 1, t: '1分：是' }, { v: 0, t: '0分：否' }] },
-      { id: 'mM', title: 'M. 每天喝多少流質？', opts: [{ v: 1, t: '1.0分：多於5杯' }, { v: 0.5, t: '0.5分：3至5杯' }, { v: 0, t: '0.0分：少於3杯' }] },
-      { id: 'mN', title: 'N. 進食模式', opts: [{ v: 2, t: '2分：能自行進食' }, { v: 1, t: '1分：自行進食稍有困難' }, { v: 0, t: '0分：需輔助才能進食' }] },
-      { id: 'mO', title: 'O. 自我評估營養狀況', opts: [{ v: 2, t: '2分：自覺無營養問題' }, { v: 1, t: '1分：不清楚' }, { v: 0, t: '0分：自覺營養不良' }] },
-      { id: 'mP', title: 'P. 與同齡相比健康狀況', opts: [{ v: 2, t: '2.0分：比別人好' }, { v: 1, t: '1.0分：和別人一樣' }, { v: 0.5, t: '0.5分：不知道' }, { v: 0, t: '0.0分：比別人差' }] },
-      { id: 'mQ', title: 'Q. 上手臂中點臂圍 (MAC)', opts: [{ v: 1, t: '1.0分：≥ 22 cm' }, { v: 0.5, t: '0.5分：21~21.9 cm' }, { v: 0, t: '0.0分：< 21 cm' }] },
-      { id: 'mR', title: 'R. 小腿圍 (CC)', opts: [{ v: 1, t: '1分：≥ 31 cm' }, { v: 0, t: '0分：< 31 cm' }] }
-    ];
-
-    let currentUser = null;
-    let accounts = [];
-    let residents = [];
-    let assessments = {};
-    let selectedResidentId = 'RES-001';
-    let currentTimepoint = 'pre';
-
-    window.addEventListener('DOMContentLoaded', async () => {
-      loadLocalFallback();
-      buildFormDynamicWidgets();
-      updateAreaCounts();
-      refreshCascadingFilters();
-      document.getElementById('evalDate').valueAsDate = new Date();
-      selectResident('RES-001', false);
-      await syncFromCloud(false);
-    });
-
-    function loadLocalFallback() {
-      const savedAcc = localStorage.getItem('rainforest_accounts_v3');
-      accounts = savedAcc ? JSON.parse(savedAcc) : [...DEFAULT_ACCOUNTS];
-      localStorage.setItem('rainforest_accounts_v3', JSON.stringify(accounts));
-
-      const savedRes = localStorage.getItem('rainforest_residents_124_v3');
-      residents = savedRes ? JSON.parse(savedRes) : [...DEFAULT_RESIDENTS];
-      if (!savedRes) localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents));
-
-      const savedAss = localStorage.getItem('rainforest_assessments_v3');
-      assessments = savedAss ? JSON.parse(savedAss) : {};
-
-      if (!localStorage.getItem('rainforest_gas_url_v3')) {
-        localStorage.setItem('rainforest_gas_url_v3', DEFAULT_GAS_URL);
-      }
-      document.getElementById('gasUrlInput').value = getGasUrl();
-    }
-
-    function getGasUrl() {
-      return localStorage.getItem('rainforest_gas_url_v3') || DEFAULT_GAS_URL;
-    }
-
-    // ================= 出生年月日自動換算實歲 =================
-    function calculateAgeFromBirthday() {
-      const rocYear = parseInt(document.getElementById('dem_birthRocYear').value, 10);
-      const month = parseInt(document.getElementById('dem_birthMonth').value, 10);
-      const day = parseInt(document.getElementById('dem_birthDay').value, 10);
-      const hintEl = document.getElementById('birthAutoHint');
-      const badgeEl = document.getElementById('ageAutoBadge');
-
-      if (!rocYear || rocYear <= 0) {
-        hintEl.textContent = '';
-        badgeEl.classList.add('hidden');
-        return;
-      }
-
-      const birthWestYear = rocYear + 1911;
-      const evalDateVal = document.getElementById('evalDate').value;
-      const refDate = evalDateVal ? new Date(evalDateVal + 'T00:00:00') : new Date();
-      const refYear = refDate.getFullYear();
-      const refMonth = refDate.getMonth() + 1;
-      const refDay = refDate.getDate();
-
-      let age = refYear - birthWestYear;
-      if (!isNaN(month) && month >= 1 && month <= 12) {
-        if (refMonth < month || (refMonth === month && !isNaN(day) && refDay < day)) {
-          age -= 1;
-        }
-      }
-
-      if (age >= 0 && age <= 130) {
-        document.getElementById('dem_age').value = age;
-        hintEl.textContent = `（西元 ${birthWestYear} 年生，依評估日換算足歲）`; badgeEl.classList.remove('hidden'); syncAgeToScreening(); } else { hintEl.textContent = '（請確認民國年份）'; badgeEl.classList.add('hidden'); } }  function syncAgeToScreening() { const ageVal = parseInt(document.getElementById('dem_age').value, 10); if (!isNaN(ageVal)) { document.getElementById('scr_age65').value = ageVal >= 65 ? 'yes' : 'no'; updateScreeningResult(); } }  // ================= 雙向同步：從 Google 雲端讀取 (doGet) ================= async function syncFromCloud(manualTrigger = false) { const loginNotice = document.getElementById('loginCloudStatusText'); if (loginNotice) loginNotice.textContent = '⏳ 正在向 Google 雲端同步最新帳號與紀錄...'; if (manualTrigger) showToast('⏳ 正在從 Google 雲端讀取最新資料...');  try { const res = await fetch(`${getGasUrl()}?action=init&_t=${Date.now()}`); const data = await res.json();  if (data && data.status === 'ok') { if (Array.isArray(data.accounts) && data.accounts.length > 0) { const hasAdmin = data.accounts.some(a => a.username === 'admin'); accounts = hasAdmin ? data.accounts : [DEFAULT_ACCOUNTS[0], ...data.accounts]; localStorage.setItem('rainforest_accounts_v3', JSON.stringify(accounts)); } else { await syncAccountsToCloud(false); }  if (Array.isArray(data.residents) && data.residents.length > 0) { residents = data.residents; localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents)); }  if (data.assessments && Object.keys(data.assessments).length > 0) { assessments = { ...assessments, ...data.assessments }; localStorage.setItem('rainforest_assessments_v3', JSON.stringify(assessments)); }  updateAreaCounts(); refreshCascadingFilters(); const curRes = residents.find(r => r.id === selectedResidentId) \vert{}\vert{} residents[0]; if (curRes) loadFormDataForResident(curRes); if (!document.getElementById('accountModal').classList.contains('hidden')) renderAccountTable();  if (loginNotice) loginNotice.textContent = `✅ 已同步雲端帳號清冊（共 ${accounts.length} 組可用帳號）`;
-          if (manualTrigger) showToast(`✅ 已成功從雲端同步 ${accounts.length} 組帳號、${residents.length} 位住民與最新評估紀錄！`);
-        }
-      } catch (err) {
-        console.warn('雲端讀取失敗，改用本機快取：', err);
-        if (loginNotice) loginNotice.textContent = '⚠️ 離線模式：目前使用本機快取帳號';
-        if (manualTrigger) showToast('⚠️ 無法讀取雲端（請確認 GAS 部署權限設為「所有人」）');
-      }
-    }
-
-    async function syncAccountsToCloud(notify = true) {
-      if (notify) showToast('⏳ 正在將帳號清冊上傳至 Google 雲端...');
-      const ok = await postToGAS({
-        action: 'syncAccounts',
-        accounts: accounts
-      });
-      if (ok && notify) {
-        showToast('✅ 施測者帳號清冊已成功同步至 Google 雲端！');
-      }
-    }
-
-    // ================= ABCD 四區分類與個案名稱連動預篩選 =================
-    function updateAreaCounts() {
-      document.getElementById('totalResidentBadge').textContent = residents.length;
-      document.getElementById('count_ALL').textContent = residents.length;
-      document.getElementById('count_A').textContent = residents.filter(r => r.area === 'A 區').length;
-      document.getElementById('count_B').textContent = residents.filter(r => r.area === 'B 區').length;
-      document.getElementById('count_C').textContent = residents.filter(r => r.area === 'C 區').length;
-      document.getElementById('count_D').textContent = residents.filter(r => r.area === 'D 區').length;
-
-      const allInsts = [...new Set(residents.map(r => r.institution).filter(Boolean))];
-      document.getElementById('instDatalist').innerHTML = allInsts.map(i => `<option value="${i}">`).join('');
-    }
-
-    function setAreaFilter(areaVal, autoSelectFirst = true) {
-      document.getElementById('filterArea').value = areaVal;
-
-      document.querySelectorAll('.area-tab').forEach(btn => {
-        const isCurrent = btn.getAttribute('data-area') === areaVal;
-        const span = btn.querySelector('span');
-        if (isCurrent) {
-          btn.className = 'area-tab py-1.5 rounded text-[11px] font-bold bg-teal-600 text-white shadow-sm transition';
-          if (span) span.className = 'block text-[10px] font-normal opacity-90';
-        } else {
-          btn.className = 'area-tab py-1.5 rounded text-[11px] font-semibold text-slate-600 hover:bg-white transition';
-          if (span) span.className = 'block text-[10px] font-normal text-slate-400';
-        }
-      });
-
-      document.getElementById('filterInstitution').value = '';
-      const filtered = refreshCascadingFilters();
-
-      if (autoSelectFirst && filtered.length > 0 && !filtered.some(r => r.id === selectedResidentId)) {
-        selectResident(filtered[0].id, false);
-      }
-    }
-
-    function onInstitutionFilterChange() {
-      const filtered = refreshCascadingFilters();
-      if (filtered.length > 0 && !filtered.some(r => r.id === selectedResidentId)) {
-        selectResident(filtered[0].id, false);
-      }
-    }
-
-    function onQuickSelectResidentChange() {
-      const resId = document.getElementById('quickSelectResident').value;
-      if (resId) {
-        selectResident(resId, true);
-      }
-    }
-
-    function onSearchInput() {
-      refreshCascadingFilters();
-    }
-
-    function clearAllFilters() {
-      document.getElementById('searchResident').value = '';
-      document.getElementById('filterInstitution').value = '';
-      setAreaFilter('', false);
-    }
-
-    function refreshCascadingFilters() {
-      const areaVal = document.getElementById('filterArea').value;
-      const instSel = document.getElementById('filterInstitution');
-      const prevInst = instSel.value;
-      const kw = document.getElementById('searchResident').value.trim().toLowerCase();
-
-      const areaResidents = areaVal ? residents.filter(r => r.area === areaVal) : residents;
-      const scopedInsts = [...new Set(areaResidents.map(r => r.institution).filter(Boolean))];
-
-      instSel.innerHTML = `<option value="">${areaVal ? areaVal + '全部機構' : '全部機構'} (${scopedInsts.length}家)</option>` +
-        scopedInsts.map(i => `<option value="${i}">${i}</option>`).join('');
-
-      if (scopedInsts.includes(prevInst)) {
-        instSel.value = prevInst;
-      } else {
-        instSel.value = '';
-      }
-      const instVal = instSel.value;
-
-      const filtered = areaResidents.filter(r => {
-        if (instVal && r.institution !== instVal) return false;
-        if (kw && !(`${r.id}${r.name} ${r.institution}${r.idNo}`).toLowerCase().includes(kw)) return false;
-        return true;
-      });
-
-      const quickSel = document.getElementById('quickSelectResident');
-      const groupedByInst = {};
-      filtered.forEach(r => {
-        if (!groupedByInst[r.institution]) groupedByInst[r.institution] = [];
-        groupedByInst[r.institution].push(r);
-      });
-
-      let quickHtml = `<option value="">-- 預選個案 (${filtered.length} 位) --</option>`;
-      Object.keys(groupedByInst).forEach(instName => {
-        quickHtml += `<optgroup label="【${instName}】">`;
-        groupedByInst[instName].forEach(r => {
-          quickHtml += `<option value="${r.id}">${r.id}${r.name} (CMS ${r.cms \vert{}\vert{} '-'})</option>`; }); quickHtml += `</optgroup>`; }); quickSel.innerHTML = quickHtml; if (filtered.some(r => r.id === selectedResidentId)) { quickSel.value = selectedResidentId; }  document.getElementById('filteredCountLabel').textContent = filtered.length; const hasAnyFilter = Boolean(areaVal \vert{}\vert{} instVal \vert{}\vert{} kw); document.getElementById('btnClearFilters').classList.toggle('hidden', !hasAnyFilter);  const tags = []; if (areaVal) tags.push(areaVal); if (instVal) tags.push(instVal); if (kw) tags.push(`關鍵字:${kw}`);
-      document.getElementById('activeFilterTag').textContent = tags.length > 0 ? tags.join(' / ') : '全區總覽';
-
-      renderResidentList(filtered);
-      return filtered;
-    }
-
-    function renderResidentList(filteredList) {
-      const container = document.getElementById('residentListContainer');
-      if (!filteredList || filteredList.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">查無符合條件的住民資料</div>`;
-        return;
-      }
-
-      const areaBadgeColor = {
-        'A 區': 'bg-amber-100 text-amber-800',
-        'B 區': 'bg-sky-100 text-sky-800',
-        'C 區': 'bg-indigo-100 text-indigo-800',
-        'D 區': 'bg-emerald-100 text-emerald-800'
-      };
-
-      container.innerHTML = filteredList.map(r => {
-        const hasPre = Boolean(assessments[`${r.id}_pre`]); const hasPost = Boolean(assessments[`${r.id}_post`]);
-        const isSelected = r.id === selectedResidentId;
-        const badgeCls = areaBadgeColor[r.area] || 'bg-slate-100 text-slate-700';
-
-        return `
-          <div onclick="selectResident('${r.id}', true)"
-            class="p-3 cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-teal-50 border-l-4 border-teal-600' : 'hover:bg-slate-50'}">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="px-1.5 py-0.2 rounded text-[10px] font-bold ${badgeCls}">${r.area}</span>
-                <span class="text-[11px] font-mono font-bold text-slate-500">${r.id}</span>
-                <span class="font-bold text-sm text-slate-800">${r.name}</span>
-                <span class="px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded text-[10px]">CMS ${r.cms || '-'}</span>
-              </div>
-              <div class="text-[11px] text-slate-500 mt-0.5">${r.institution}</div>
-            </div>
-            <div class="flex flex-col items-end gap-1">
-              <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${hasPre ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400'}">
-                前測 ${hasPre ? '✓' : '-'}
-              </span>
-              <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${hasPost ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-400'}">
-                後測 ${hasPost ? '✓' : '-'}
-              </span>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function selectResident(resId, syncAreaTab = true) {
-      selectedResidentId = resId;
-      const res = residents.find(r => r.id === resId) || residents[0];
-
-      if (syncAreaTab && res.area && document.getElementById('filterArea').value !== res.area) {
-        setAreaFilter(res.area, false);
-      }
-
-      document.getElementById('selectedAreaBadge').textContent = res.area || '未分區';
-      document.getElementById('selectedResId').textContent = res.id;
-      document.getElementById('selectedResName').textContent = res.name;
-      document.getElementById('selectedResMeta').textContent =
-        `${res.institution}｜CMS ${res.cms \vert{}\vert{} '-'} 級｜${res.age || '-'} 歲`;
-
-      refreshCascadingFilters();
-      loadFormDataForResident(res);
-    }
-
-    // ================= 登入與管理者帳號權限管理 =================
-    function quickFillLogin(u, p) {
-      document.getElementById('loginUsername').value = u;
-      document.getElementById('loginPassword').value = p;
-    }
-
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const u = document.getElementById('loginUsername').value.trim();
-      const p = document.getElementById('loginPassword').value.trim();
-      const matched = accounts.find(a => a.username === u && a.password === p);
-
-      const errBox = document.getElementById('loginError');
-      if (!matched) {
-        errBox.textContent = '❌ 帳號或密碼錯誤。若為管理者剛新增之帳號，請先點擊上方「立即重整」同步雲端清冊。';
-        errBox.classList.remove('hidden');
-        return;
-      }
-
-      errBox.classList.add('hidden');
-      currentUser = matched;
-      document.getElementById('loginModal').classList.add('hidden');
-      document.getElementById('currentUserDisplay').textContent = `${matched.name} (${matched.username})`;
-      document.getElementById('currentRoleDisplay').textContent = matched.role === 'admin' ? '最高管理者' : '現場施測人員';
-      document.getElementById('formEvaluatorTag').textContent = `${matched.name} (${matched.username})`;
-      document.getElementById('footerEvaluatorName').textContent = `${matched.name} (${matched.username})`;
-
-      if (matched.role === 'admin') {
-        document.getElementById('btnAccountManage').classList.remove('hidden');
-      } else {
-        document.getElementById('btnAccountManage').classList.add('hidden');
-      }
-      showToast(`歡迎登入
+      { id:
