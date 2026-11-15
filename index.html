@@ -25,12 +25,9 @@
         <p class="text-teal-100 text-sm mt-1">個案評估與前後測數據紀錄平台</p>
       </div>
       <form id="loginForm" class="p-6 space-y-4">
-        <div id="cloudSyncLoginNotice" class="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-3 py-2 rounded-lg flex items-center justify-between gap-2">
+        <div id="cloudSyncLoginNotice" class="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-3 py-2 rounded-lg flex items-center justify-between">
           <span id="loginCloudStatusText">⏳ 正在從 Google 雲端同步最新帳號清冊...</span>
-          <div class="flex items-center gap-2 shrink-0">
-            <button type="button" onclick="syncFromCloud(true)" class="underline font-bold hover:text-sky-950">重整</button>
-            <button type="button" onclick="openGasModal()" class="underline font-bold text-slate-600 hover:text-slate-900">設定網址</button>
-          </div>
+          <button type="button" onclick="syncFromCloud(true)" class="underline font-bold hover:text-sky-950 shrink-0 ml-2">立即重整</button>
         </div>
         <div id="loginError" class="hidden bg-rose-50 border border-rose-200 text-rose-700 text-xs px-3 py-2.5 rounded-lg font-medium"></div>
         <div>
@@ -44,8 +41,8 @@
             class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none text-sm" />
         </div>
         <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 space-y-1.5">
-          <p class="font-semibold text-slate-700">快速填入預設測試帳號：</p>
-          <div class="flex flex-wrap gap-2">
+          <p class="font-semibold text-slate-700">快速填入測試帳號：</p>
+          <div id="quickAccountButtons" class="flex flex-wrap gap-2">
             <button type="button" onclick="quickFillLogin('admin', 'rainforest123')"
               class="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded font-medium transition">
               管理者 (admin)
@@ -79,14 +76,13 @@
             <span>住民名冊：<strong id="totalResidentBadge" class="text-teal-700">124</strong> 位</span>
             <span>•</span>
             <span id="cloudStatusBadge" class="inline-flex items-center gap-1 text-emerald-700 font-medium">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 雲端雙向連線就緒
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 已綁定最新 GAS 雲端
             </span>
           </div>
         </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <!-- 管理者專屬按鈕 -->
         <button id="btnAccountManage" onclick="openAccountModal()"
           class="hidden px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1">
           🔐 施測者帳號管理
@@ -310,7 +306,6 @@
               <input type="date" id="evalDate" onchange="calculateAgeFromBirthday()" class="w-full px-3 py-2 border border-slate-300 rounded-lg" />
             </div>
 
-            <!-- 民國出生年月日輸入，自動計算實歲 -->
             <div class="sm:col-span-2">
               <label class="block font-semibold text-slate-700 mb-1">
                 出生年月日（輸入民國年自動換算實歲）
@@ -407,9 +402,7 @@
 
           <div class="mt-4 pt-3 border-t border-slate-100 text-xs">
             <label class="block font-semibold text-slate-700 mb-2">慢性疾病（可複選）</label>
-            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2" id="chronicDiseaseGroup">
-              <!-- JS 動態產生慢性病勾選框 -->
-            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2" id="chronicDiseaseGroup"></div>
           </div>
         </div>
 
@@ -424,9 +417,7 @@
               <span id="barthelGradeTag" class="ml-2 px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-xs font-semibold">完全依賴</span>
             </div>
           </div>
-          <div id="barthelContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            <!-- JS 動態產生 10 項巴氏量表 -->
-          </div>
+          <div id="barthelContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
         </div>
 
         <!-- 四、MNA 營養評估 -->
@@ -439,17 +430,13 @@
               <span id="mnaStatusTag" class="px-2.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">評估中</span>
             </div>
           </div>
-          <div id="mnaContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            <!-- JS 動態產生 MNA A-R -->
-          </div>
+          <div id="mnaContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
         </div>
 
-        <!-- 五、手握力與有氧耐力（自動計算進步率） -->
+        <!-- 五、手握力與有氧耐力 -->
         <div class="bg-white rounded-xl card-shadow border border-slate-200 p-5">
           <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3 mb-4">五、手握力與有氧耐力前後測比較</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
-
-            <!-- 5-1 手握力 -->
             <div class="p-4 rounded-xl bg-teal-50/50 border border-teal-100 space-y-3">
               <div class="flex items-center justify-between">
                 <h4 class="font-bold text-teal-900 text-sm">5-1 手握力測試 (kg)</h4>
@@ -479,7 +466,6 @@
               </div>
             </div>
 
-            <!-- 5-2 有氧耐力 -->
             <div class="p-4 rounded-xl bg-sky-50/50 border border-sky-100 space-y-3">
               <div class="flex items-center justify-between">
                 <h4 class="font-bold text-sky-900 text-sm">5-2 有氧耐力腳踏車 (m)</h4>
@@ -509,7 +495,6 @@
                 騎乘距離進步率：<strong id="bike_rate" class="text-base text-sky-700">0.0%</strong>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -575,7 +560,6 @@
           <button type="button" id="tabBatchAdd" onclick="switchAddTab('batch')" class="px-4 py-2 text-slate-500">批次貼上名單 (Excel)</button>
         </div>
 
-        <!-- 單筆新增 -->
         <form id="singleResidentForm" class="space-y-3">
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -626,7 +610,6 @@
           </button>
         </form>
 
-        <!-- 批次貼上 -->
         <div id="batchResidentBox" class="hidden space-y-3">
           <p class="text-slate-600 leading-relaxed">
             請從 Excel 複製多列資料貼上（欄位順序：<code class="bg-slate-100 px-1">區域 [Tab] 機構名稱 [Tab] 姓名 [Tab] CMS [Tab] 年齡 [Tab] 身分證</code>）：
@@ -674,9 +657,7 @@
                 <th class="p-2.5 text-right">操作</th>
               </tr>
             </thead>
-            <tbody id="accountTableBody" class="divide-y divide-slate-100">
-              <!-- JS 渲染 -->
-            </tbody>
+            <tbody id="accountTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
       </div>
@@ -692,16 +673,19 @@
       </div>
       <div class="p-5 space-y-4 text-xs">
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-lg">
-          📌 請貼上新部署的 Google Apps Script 網頁應用程式網址（結尾為 <code>/exec</code>），儲存後系統將自動雙向連線。
+          ✅ 系統已預設綁定您的最新 GAS Web App 網址，並支援 JSONP 零阻擋雲端讀取。
         </div>
         <div>
           <label class="block font-semibold text-slate-700 mb-1">GAS Web App 部署網址 (/exec)</label>
-          <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
+          <input type="url" id="gasUrlInput"
             class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono text-[11px]" />
         </div>
         <div class="flex gap-2">
           <button type="button" onclick="saveGasUrl()" class="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg">
-            儲存並立即連線測試
+            儲存網址設定
+          </button>
+          <button type="button" onclick="resetDefaultGasUrl()" class="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg">
+            恢復預設網址
           </button>
           <button type="button" onclick="testGasConnection()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-lg">
             📡 測試連線
@@ -717,7 +701,6 @@
 
   <!-- ================= 7. 核心邏輯與完整 124 位住民資料庫 ================= -->
   <script>
-    // 請於此處填入您重新部署後的 GAS Web App 網址（或直接在網頁右上角「GAS 設定」貼上儲存）
     const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbw3-gv0529TENdSKdAUc2aMiWc_hMeNjw2gc0oJgZmZiuKN-bF-y4JZF4Zd_vUKgp5q/exec';
 
     const DEFAULT_ACCOUNTS = [
@@ -794,4 +777,1059 @@
       { id: 'RES-065', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 2, name: '吳秀連', cms: '7', age: 86, idNo: 'T200373025' },
       { id: 'RES-066', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 3, name: '林金土', cms: '7', age: 83, idNo: 'T101593421' },
       { id: 'RES-067', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 4, name: '李黃金枝', cms: '6', age: 87, idNo: 'T200216123' },
-      { id:
+      { id: 'RES-068', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 5, name: '黃天化', cms: '7', age: 78, idNo: 'T101673620' },
+      { id: 'RES-069', area: 'C 區', institution: '慈暉老人長期照顧中心', seq: 6, name: '鄭阿蘭', cms: '6', age: 84, idNo: 'T200925769' },
+      { id: 'RES-070', area: 'C 區', institution: '寶建春風護理之家', seq: 1, name: '蘇清標', cms: '7', age: 81, idNo: 'T100475764' },
+      { id: 'RES-071', area: 'C 區', institution: '寶建春風護理之家', seq: 2, name: '潘陳桂香', cms: '6', age: 88, idNo: 'T200670350' },
+      { id: 'RES-072', area: 'C 區', institution: '寶建春風護理之家', seq: 3, name: '楊春生', cms: '7', age: 85, idNo: 'T101967145' },
+      { id: 'RES-073', area: 'C 區', institution: '寶建春風護理之家', seq: 4, name: '鍾美雲', cms: '6', age: 79, idNo: 'T200424689' },
+      { id: 'RES-074', area: 'C 區', institution: '寶建春風護理之家', seq: 5, name: '曾金福', cms: '7', age: 83, idNo: 'T101389409' },
+      { id: 'RES-075', area: 'C 區', institution: '寶建春風護理之家', seq: 6, name: '葉秀月', cms: '7', age: 87, idNo: 'T200547678' },
+      { id: 'RES-076', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 1, name: '戴阿興', cms: '6', age: 76, idNo: 'T101940582' },
+      { id: 'RES-077', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 2, name: '邱蔡秀花', cms: '7', age: 89, idNo: 'T200177729' },
+      { id: 'RES-078', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 3, name: '許福來', cms: '7', age: 82, idNo: 'T101981289' },
+      { id: 'RES-079', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 4, name: '林李阿幼', cms: '6', age: 85, idNo: 'T200366628' },
+      { id: 'RES-080', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 5, name: '郭文雄', cms: '7', age: 80, idNo: 'T100498230' },
+      { id: 'RES-081', area: 'C 區', institution: '裕健老人長期照顧機構', seq: 6, name: '江黃阿好', cms: '6', age: 86, idNo: 'T200845348' },
+      { id: 'RES-082', area: 'C 區', institution: '長春園住宿長照機構', seq: 1, name: '陳秋生', cms: '7', age: 84, idNo: 'T120732340' },
+      { id: 'RES-083', area: 'C 區', institution: '長春園住宿長照機構', seq: 2, name: '黃李阿鳳', cms: '6', age: 88, idNo: 'T200596377' },
+      { id: 'RES-084', area: 'C 區', institution: '長春園住宿長照機構', seq: 3, name: '李順安', cms: '7', age: 81, idNo: 'S100763768' },
+      { id: 'RES-085', area: 'C 區', institution: '長春園住宿長照機構', seq: 4, name: '張王碧雲', cms: '6', age: 79, idNo: 'T200609388' },
+      { id: 'RES-086', area: 'C 區', institution: '長春園住宿長照機構', seq: 5, name: '王添壽', cms: '7', age: 85, idNo: 'T101488339' },
+      { id: 'RES-087', area: 'C 區', institution: '長春園住宿長照機構', seq: 6, name: '戴阿滿', cms: '7', age: 90, idNo: 'T201726588' },
+      { id: 'RES-088', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 1, name: '蔡春福', cms: '6', age: 83, idNo: 'T101673620' },
+      { id: 'RES-089', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 2, name: '潘秀蓮', cms: '7', age: 87, idNo: 'T201988075' },
+      { id: 'RES-090', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 3, name: '林萬得', cms: '6', age: 78, idNo: 'T100113483' },
+      { id: 'RES-091', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 4, name: '曾陳春香', cms: '7', age: 86, idNo: 'T202483444' },
+      { id: 'RES-092', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 5, name: '劉金龍', cms: '7', age: 82, idNo: 'T101297779' },
+      { id: 'RES-093', area: 'C 區', institution: '天佑老人長期照顧中心', seq: 6, name: '黃阿招', cms: '6', age: 89, idNo: 'T200595307' },
+      { id: 'RES-094', area: 'D 區', institution: '康乃心護理之家', seq: 1, name: '邱德和', cms: '7', age: 84, idNo: 'T101593421' },
+      { id: 'RES-095', area: 'D 區', institution: '康乃心護理之家', seq: 2, name: '蘇林富美', cms: '6', age: 81, idNo: 'T200373025' },
+      { id: 'RES-096', area: 'D 區', institution: '康乃心護理之家', seq: 3, name: '張明德', cms: '7', age: 88, idNo: 'T100475764' },
+      { id: 'RES-097', area: 'D 區', institution: '康乃心護理之家', seq: 4, name: '吳秀連', cms: '6', age: 85, idNo: 'T200216123' },
+      { id: 'RES-098', area: 'D 區', institution: '康乃心護理之家', seq: 5, name: '陳正男', cms: '7', age: 80, idNo: 'T101967145' },
+      { id: 'RES-099', area: 'D 區', institution: '康乃心護理之家', seq: 6, name: '林玉秀', cms: '7', age: 87, idNo: 'T200925769' },
+      { id: 'RES-100', area: 'D 區', institution: '長榮綜合長照機構', seq: 1, name: '黃新發', cms: '6', age: 79, idNo: 'T101389409' },
+      { id: 'RES-101', area: 'D 區', institution: '長榮綜合長照機構', seq: 2, name: '廖林金葉', cms: '7', age: 86, idNo: 'T200670350' },
+      { id: 'RES-102', area: 'D 區', institution: '長榮綜合長照機構', seq: 3, name: '李朝琴', cms: '6', age: 83, idNo: 'T101940582' },
+      { id: 'RES-103', area: 'D 區', institution: '長榮綜合長照機構', seq: 4, name: '潘林秀英', cms: '7', age: 89, idNo: 'T200424689' },
+      { id: 'RES-104', area: 'D 區', institution: '長榮綜合長照機構', seq: 5, name: '尤金德', cms: '7', age: 82, idNo: 'T101981289' },
+      { id: 'RES-105', area: 'D 區', institution: '長榮綜合長照機構', seq: 6, name: '戴蔡秀雲', cms: '6', age: 85, idNo: 'T200547678' },
+      { id: 'RES-106', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 1, name: '徐林靜妹', cms: '7', age: 86, idNo: '' },
+      { id: 'RES-107', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 2, name: '馮秀香', cms: '7', age: 85, idNo: '' },
+      { id: 'RES-108', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 3, name: '潘李新妹', cms: '6', age: 88, idNo: '' },
+      { id: 'RES-109', area: 'D 區', institution: '屏東榮總龍泉分院松鶴', seq: 4, name: '潘玉華', cms: '6', age: 79, idNo: '' },
+      { id: 'RES-110', area: 'D 區', institution: '大愛護理之家', seq: 1, name: '林雄', cms: '6', age: 77, idNo: 'T100498230' },
+      { id: 'RES-111', area: 'D 區', institution: '大愛護理之家', seq: 2, name: '黃同榮', cms: '7', age: 69, idNo: 'T120732340' },
+      { id: 'RES-112', area: 'D 區', institution: '大愛護理之家', seq: 3, name: '徐崇德', cms: '6', age: 87, idNo: 'S100763768' },
+      { id: 'RES-113', area: 'D 區', institution: '大愛護理之家', seq: 4, name: '余香', cms: '7', age: 82, idNo: 'T201988075' },
+      { id: 'RES-114', area: 'D 區', institution: '大愛護理之家', seq: 5, name: '陳林愛玉', cms: '7', age: 100, idNo: 'T201980622' },
+      { id: 'RES-115', area: 'D 區', institution: '大愛護理之家', seq: 6, name: '黃吳耐', cms: '6', age: 86, idNo: 'T202483444' },
+      { id: 'RES-116', area: 'D 區', institution: '南門綜合長照機構', seq: 1, name: '李清', cms: '7', age: 82, idNo: 'T100475764' },
+      { id: 'RES-117', area: 'D 區', institution: '南門綜合長照機構', seq: 2, name: '黃金榮', cms: '7', age: 73, idNo: 'T101967145' },
+      { id: 'RES-118', area: 'D 區', institution: '南門綜合長照機構', seq: 3, name: '盧成吉', cms: '6', age: 91, idNo: 'T101389409' },
+      { id: 'RES-119', area: 'D 區', institution: '南門綜合長照機構', seq: 4, name: '李清義', cms: '7', age: 82, idNo: 'T100475764' },
+      { id: 'RES-120', area: 'D 區', institution: '南門綜合長照機構', seq: 5, name: '柯安全', cms: '6', age: 74, idNo: 'T101940582' },
+      { id: 'RES-121', area: 'D 區', institution: '南門綜合長照機構', seq: 6, name: '尤新盛', cms: '6', age: 71, idNo: 'T101981289' },
+      { id: 'RES-122', area: 'D 區', institution: '吾老莊住宿長照機構', seq: 1, name: '柯綿花', cms: '6', age: '', idNo: '' },
+      { id: 'RES-123', area: 'D 區', institution: '吾老莊住宿長照機構', seq: 2, name: '謝李春芳', cms: '7', age: '', idNo: '' },
+      { id: 'RES-124', area: 'D 區', institution: '吾老莊住宿長照機構', seq: 3, name: '江范金英', cms: '6', age: '', idNo: '' }
+    ];
+
+    const CHRONIC_LIST = ['關節炎', '心臟病', '高血壓', '中風', '糖尿病', '尿毒症', '甲狀腺機能障礙', 'COPD', '消化性潰瘍', '痛風', '帕金森氏症', '癌症'];
+
+    const BARTHEL_ITEMS = [
+      { id: 'b1', title: '1. 進食', opts: [{ v: 10, t: '10分：獨立進食' }, { v: 5, t: '5分：需協助切好/穿脫輔具' }, { v: 0, t: '0分：無法自行取食' }] },
+      { id: 'b2', title: '2. 移動', opts: [{ v: 15, t: '15分：獨立完成' }, { v: 10, t: '10分：需稍微扶持或口頭指導' }, { v: 5, t: '5分：可自行坐起但移位需協助' }, { v: 0, t: '0分：需協助坐起或兩人移位' }] },
+      { id: 'b3', title: '3. 個人衛生', opts: [{ v: 5, t: '5分：可自行刷牙洗臉梳頭' }, { v: 0, t: '0分：需別人協助盥洗' }] },
+      { id: 'b4', title: '4. 如廁', opts: [{ v: 10, t: '10分：可自行上下馬桶清潔' }, { v: 5, t: '5分：需協助保持平衡或整理衣物' }, { v: 0, t: '0分：無法自行如廁' }] },
+      { id: 'b5', title: '5. 沐浴', opts: [{ v: 5, t: '5分：可自行盆浴或淋浴' }, { v: 0, t: '0分：需別人協助沐浴' }] },
+      { id: 'b6', title: '6. 步行', opts: [{ v: 15, t: '15分：獨立行走50公尺以上' }, { v: 10, t: '10分：需稍微扶持走50公尺' }, { v: 5, t: '5分：獨立操作輪椅推50公尺' }, { v: 0, t: '0分：需要別人幫忙' }] },
+      { id: 'b7', title: '7. 上下樓梯', opts: [{ v: 10, t: '10分：可自行上下樓梯' }, { v: 5, t: '5分：需稍微協助或口頭指導' }, { v: 0, t: '0分：無法上下樓' }] },
+      { id: 'b8', title: '8. 穿脫衣褲鞋襪', opts: [{ v: 10, t: '10分：可自行穿脫' }, { v: 5, t: '5分：協助下可完成一半以上' }, { v: 0, t: '0分：需要完全幫忙' }] },
+      { id: 'b9', title: '9. 大便控制', opts: [{ v: 10, t: '10分：不會失禁' }, { v: 5, t: '5分：偶爾失禁(每週≤1次)' }, { v: 0, t: '0分：失禁或需灌腸' }] },
+      { id: 'b10', title: '10. 小便控制', opts: [{ v: 10, t: '10分：日夜皆不會尿失禁' }, { v: 5, t: '5分：偶爾失禁(每週≤1次)' }, { v: 0, t: '0分：失禁或需導尿' }] }
+    ];
+
+    const MNA_ITEMS = [
+      { id: 'mA', title: 'A. 近三個月食量減少？', opts: [{ v: 2, t: '2分：沒有改變' }, { v: 1, t: '1分：中度減少' }, { v: 0, t: '0分：嚴重減少' }] },
+      { id: 'mB', title: 'B. 近三個月體重下降？', opts: [{ v: 3, t: '3分：沒有下降' }, { v: 2, t: '2分：下降1-3公斤' }, { v: 1, t: '1分：不知道' }, { v: 0, t: '0分：下降>3公斤' }] },
+      { id: 'mC', title: 'C. 活動能力', opts: [{ v: 2, t: '2分：可以外出' }, { v: 1, t: '1分：可離床但不能外出' }, { v: 0, t: '0分：長期臥床或坐輪椅' }] },
+      { id: 'mD', title: 'D. 近三個月心理創傷/急性病？', opts: [{ v: 2, t: '2分：沒有' }, { v: 0, t: '0分：有' }] },
+      { id: 'mE', title: 'E. 精神心理問題', opts: [{ v: 2, t: '2分：無問題' }, { v: 1, t: '1分：輕度痴呆' }, { v: 0, t: '0分：嚴重痴呆或抑鬱' }] },
+      { id: 'mF', title: 'F. 身體質量指數 (BMI)', opts: [{ v: 3, t: '3分：BMI ≥ 23' }, { v: 2, t: '2分：BMI 21~22.9' }, { v: 1, t: '1分：BMI 19~20.9' }, { v: 0, t: '0分：BMI < 19' }] },
+      { id: 'mG', title: 'G. 是否獨立生活？', opts: [{ v: 0, t: '0分：否(住機構)' }, { v: 1, t: '1分：是' }] },
+      { id: 'mH', title: 'H. 每天服用3種以上處方藥？', opts: [{ v: 0, t: '0分：是' }, { v: 1, t: '1分：否' }] },
+      { id: 'mI', title: 'I. 是否有褥瘡或皮膚潰瘍？', opts: [{ v: 1, t: '1分：否' }, { v: 0, t: '0分：是' }] },
+      { id: 'mJ', title: 'J. 每天吃多少次主餐？', opts: [{ v: 2, t: '2分：3餐' }, { v: 1, t: '1分：2餐' }, { v: 0, t: '0分：1餐' }] },
+      { id: 'mK', title: 'K. 蛋白質攝取量指標', opts: [{ v: 1, t: '1.0分：3個「是」' }, { v: 0.5, t: '0.5分：2個「是」' }, { v: 0, t: '0.0分：0或1個「是」' }] },
+      { id: 'mL', title: 'L. 每天進食兩份以上蔬果？', opts: [{ v: 1, t: '1分：是' }, { v: 0, t: '0分：否' }] },
+      { id: 'mM', title: 'M. 每天喝多少流質？', opts: [{ v: 1, t: '1.0分：多於5杯' }, { v: 0.5, t: '0.5分：3至5杯' }, { v: 0, t: '0.0分：少於3杯' }] },
+      { id: 'mN', title: 'N. 進食模式', opts: [{ v: 2, t: '2分：能自行進食' }, { v: 1, t: '1分：自行進食稍有困難' }, { v: 0, t: '0分：需輔助才能進食' }] },
+      { id: 'mO', title: 'O. 自我評估營養狀況', opts: [{ v: 2, t: '2分：自覺無營養問題' }, { v: 1, t: '1分：不清楚' }, { v: 0, t: '0分：自覺營養不良' }] },
+      { id: 'mP', title: 'P. 與同齡相比健康狀況', opts: [{ v: 2, t: '2.0分：比別人好' }, { v: 1, t: '1.0分：和別人一樣' }, { v: 0.5, t: '0.5分：不知道' }, { v: 0, t: '0.0分：比別人差' }] },
+      { id: 'mQ', title: 'Q. 上手臂中點臂圍 (MAC)', opts: [{ v: 1, t: '1.0分：≥ 22 cm' }, { v: 0.5, t: '0.5分：21~21.9 cm' }, { v: 0, t: '0.0分：< 21 cm' }] },
+      { id: 'mR', title: 'R. 小腿圍 (CC)', opts: [{ v: 1, t: '1分：≥ 31 cm' }, { v: 0, t: '0分：< 31 cm' }] }
+    ];
+
+    let currentUser = null;
+    let accounts = [];
+    let residents = [];
+    let assessments = {};
+    let selectedResidentId = 'RES-001';
+    let currentTimepoint = 'pre';
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadLocalFallback();
+      renderQuickAccountButtons();
+      buildFormDynamicWidgets();
+      updateAreaCounts();
+      refreshCascadingFilters();
+      document.getElementById('evalDate').valueAsDate = new Date();
+      selectResident('RES-001', false);
+      await syncFromCloud(false);
+    });
+
+    function loadLocalFallback() {
+      const savedAcc = localStorage.getItem('rainforest_accounts_v4');
+      accounts = savedAcc ? JSON.parse(savedAcc) : [...DEFAULT_ACCOUNTS];
+      localStorage.setItem('rainforest_accounts_v4', JSON.stringify(accounts));
+
+      const savedRes = localStorage.getItem('rainforest_residents_124_v4');
+      residents = savedRes ? JSON.parse(savedRes) : [...DEFAULT_RESIDENTS];
+      if (!savedRes) localStorage.setItem('rainforest_residents_124_v4', JSON.stringify(residents));
+
+      const savedAss = localStorage.getItem('rainforest_assessments_v4');
+      assessments = savedAss ? JSON.parse(savedAss) : {};
+
+      if (!localStorage.getItem('rainforest_gas_url_v4')) {
+        localStorage.setItem('rainforest_gas_url_v4', DEFAULT_GAS_URL);
+      }
+      document.getElementById('gasUrlInput').value = getGasUrl();
+    }
+
+    function getGasUrl() {
+      return localStorage.getItem('rainforest_gas_url_v4') || DEFAULT_GAS_URL;
+    }
+
+    // ================= JSONP + Fetch 雙軌讀取雲端（徹底突破 file:/// 與 CORS 限制） =================
+    function fetchGasJsonp(actionName = 'init') {
+      return new Promise((resolve, reject) => {
+        const cbName = 'gasCb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+        const script = document.createElement('script');
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error('JSONP 逾時'));
+        }, 7000);
+
+        function cleanup() {
+          clearTimeout(timer);
+          delete window[cbName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[cbName] = function(data) {
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = function() {
+          cleanup();
+          reject(new Error('JSONP 載入失敗'));
+        };
+
+        const sep = getGasUrl().includes('?') ? '&' : '?';
+        script.src = `${getGasUrl()}${sep}action=${actionName}&callback=${cbName}&_t=${Date.now()}`;
+        document.body.appendChild(script);
+      });
+    }
+
+    async function fetchCloudPayload(actionName = 'init') {
+      // 優先使用 JSONP（支援 file:/// 與跨網域），若失敗再嘗試 fetch
+      try {
+        return await fetchGasJsonp(actionName);
+      } catch (e) {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 7000);
+        try {
+          const res = await fetch(`${getGasUrl()}?action=${actionName}&_t=${Date.now()}`, { signal: controller.signal });
+          clearTimeout(tid);
+          return await res.json();
+        } catch (err) {
+          clearTimeout(tid);
+          throw err;
+        }
+      }
+    }
+
+    async function syncFromCloud(manualTrigger = false) {
+      const loginNotice = document.getElementById('loginCloudStatusText');
+      if (loginNotice) loginNotice.textContent = '⏳ 正在向 Google 雲端同步最新帳號清冊...';
+      if (manualTrigger) showToast('⏳ 正在從 Google 雲端讀取最新資料...');
+
+      try {
+        const data = await fetchCloudPayload('init');
+
+        if (data && data.status === 'ok') {
+          if (Array.isArray(data.accounts) && data.accounts.length > 0) {
+            const hasAdmin = data.accounts.some(a => a.username === 'admin');
+            accounts = hasAdmin ? data.accounts : [DEFAULT_ACCOUNTS[0], ...data.accounts];
+            localStorage.setItem('rainforest_accounts_v4', JSON.stringify(accounts));
+            renderQuickAccountButtons();
+          } else {
+            await syncAccountsToCloud(false);
+          }
+
+          if (Array.isArray(data.residents) && data.residents.length > 0) {
+            residents = data.residents;
+            localStorage.setItem('rainforest_residents_124_v4', JSON.stringify(residents));
+          }
+
+          if (data.assessments && Object.keys(data.assessments).length > 0) {
+            assessments = { ...assessments, ...data.assessments };
+            localStorage.setItem('rainforest_assessments_v4', JSON.stringify(assessments));
+          }
+
+          updateAreaCounts();
+          refreshCascadingFilters();
+          const curRes = residents.find(r => r.id === selectedResidentId) || residents[0];
+          if (curRes) loadFormDataForResident(curRes);
+          if (!document.getElementById('accountModal').classList.contains('hidden')) renderAccountTable();
+
+          if (loginNotice) loginNotice.textContent = `✅ 已同步雲端帳號清冊（共 ${accounts.length} 組可用帳號）`;
+          if (manualTrigger) showToast(`✅ 已成功從雲端同步 ${accounts.length} 組帳號、${residents.length} 位住民與評估紀錄！`);
+        }
+      } catch (err) {
+        console.warn('雲端讀取切換為本機模式：', err);
+        if (loginNotice) loginNotice.textContent = `⚠️ 本機快取模式（目前可用 ${accounts.length} 組帳號）`;
+        if (manualTrigger) showToast('⚠️ 雲端暫時無回應，請確認 GAS 部署權限或先用預設帳號登入');
+      }
+    }
+
+    async function syncAccountsToCloud(notify = true) {
+      if (notify) showToast('⏳ 正在將帳號清冊上傳至 Google 雲端...');
+      const ok = await postToGAS({
+        action: 'syncAccounts',
+        accounts: accounts
+      });
+      if (ok && notify) {
+        showToast('✅ 施測者帳號清冊已成功同步至 Google 雲端！');
+      }
+    }
+
+    // ================= 出生年月日自動換算實歲 =================
+    function calculateAgeFromBirthday() {
+      const rocYear = parseInt(document.getElementById('dem_birthRocYear').value, 10);
+      const month = parseInt(document.getElementById('dem_birthMonth').value, 10);
+      const day = parseInt(document.getElementById('dem_birthDay').value, 10);
+      const hintEl = document.getElementById('birthAutoHint');
+      const badgeEl = document.getElementById('ageAutoBadge');
+
+      if (!rocYear || rocYear <= 0) {
+        hintEl.textContent = '';
+        badgeEl.classList.add('hidden');
+        return;
+      }
+
+      const birthWestYear = rocYear + 1911;
+      const evalDateVal = document.getElementById('evalDate').value;
+      const refDate = evalDateVal ? new Date(evalDateVal + 'T00:00:00') : new Date();
+      const refYear = refDate.getFullYear();
+      const refMonth = refDate.getMonth() + 1;
+      const refDay = refDate.getDate();
+
+      let age = refYear - birthWestYear;
+      if (!isNaN(month) && month >= 1 && month <= 12) {
+        if (refMonth < month || (refMonth === month && !isNaN(day) && refDay < day)) {
+          age -= 1;
+        }
+      }
+
+      if (age >= 0 && age <= 130) {
+        document.getElementById('dem_age').value = age;
+        hintEl.textContent = `（西元 ${birthWestYear} 年生，依評估日換算足歲）`;
+        badgeEl.classList.remove('hidden');
+        syncAgeToScreening();
+      } else {
+        hintEl.textContent = '（請確認民國年份）';
+        badgeEl.classList.add('hidden');
+      }
+    }
+
+    function syncAgeToScreening() {
+      const ageVal = parseInt(document.getElementById('dem_age').value, 10);
+      if (!isNaN(ageVal)) {
+        document.getElementById('scr_age65').value = ageVal >= 65 ? 'yes' : 'no';
+        updateScreeningResult();
+      }
+    }
+
+    // ================= ABCD 四區分類與個案名稱連動預篩選 =================
+    function updateAreaCounts() {
+      document.getElementById('totalResidentBadge').textContent = residents.length;
+      document.getElementById('count_ALL').textContent = residents.length;
+      document.getElementById('count_A').textContent = residents.filter(r => r.area === 'A 區').length;
+      document.getElementById('count_B').textContent = residents.filter(r => r.area === 'B 區').length;
+      document.getElementById('count_C').textContent = residents.filter(r => r.area === 'C 區').length;
+      document.getElementById('count_D').textContent = residents.filter(r => r.area === 'D 區').length;
+
+      const allInsts = [...new Set(residents.map(r => r.institution).filter(Boolean))];
+      document.getElementById('instDatalist').innerHTML = allInsts.map(i => `<option value="${i}">`).join('');
+    }
+
+    function setAreaFilter(areaVal, autoSelectFirst = true) {
+      document.getElementById('filterArea').value = areaVal;
+
+      document.querySelectorAll('.area-tab').forEach(btn => {
+        const isCurrent = btn.getAttribute('data-area') === areaVal;
+        const span = btn.querySelector('span');
+        if (isCurrent) {
+          btn.className = 'area-tab py-1.5 rounded text-[11px] font-bold bg-teal-600 text-white shadow-sm transition';
+          if (span) span.className = 'block text-[10px] font-normal opacity-90';
+        } else {
+          btn.className = 'area-tab py-1.5 rounded text-[11px] font-semibold text-slate-600 hover:bg-white transition';
+          if (span) span.className = 'block text-[10px] font-normal text-slate-400';
+        }
+      });
+
+      document.getElementById('filterInstitution').value = '';
+      const filtered = refreshCascadingFilters();
+
+      if (autoSelectFirst && filtered.length > 0 && !filtered.some(r => r.id === selectedResidentId)) {
+        selectResident(filtered[0].id, false);
+      }
+    }
+
+    function onInstitutionFilterChange() {
+      const filtered = refreshCascadingFilters();
+      if (filtered.length > 0 && !filtered.some(r => r.id === selectedResidentId)) {
+        selectResident(filtered[0].id, false);
+      }
+    }
+
+    function onQuickSelectResidentChange() {
+      const resId = document.getElementById('quickSelectResident').value;
+      if (resId) {
+        selectResident(resId, true);
+      }
+    }
+
+    function onSearchInput() {
+      refreshCascadingFilters();
+    }
+
+    function clearAllFilters() {
+      document.getElementById('searchResident').value = '';
+      document.getElementById('filterInstitution').value = '';
+      setAreaFilter('', false);
+    }
+
+    function refreshCascadingFilters() {
+      const areaVal = document.getElementById('filterArea').value;
+      const instSel = document.getElementById('filterInstitution');
+      const prevInst = instSel.value;
+      const kw = document.getElementById('searchResident').value.trim().toLowerCase();
+
+      const areaResidents = areaVal ? residents.filter(r => r.area === areaVal) : residents;
+      const scopedInsts = [...new Set(areaResidents.map(r => r.institution).filter(Boolean))];
+
+      instSel.innerHTML = `<option value="">${areaVal ? areaVal + '全部機構' : '全部機構'} (${scopedInsts.length}家)</option>` +
+        scopedInsts.map(i => `<option value="${i}">${i}</option>`).join('');
+
+      if (scopedInsts.includes(prevInst)) {
+        instSel.value = prevInst;
+      } else {
+        instSel.value = '';
+      }
+      const instVal = instSel.value;
+
+      const filtered = areaResidents.filter(r => {
+        if (instVal && r.institution !== instVal) return false;
+        if (kw && !(`${r.id} ${r.name} ${r.institution} ${r.idNo}`).toLowerCase().includes(kw)) return false;
+        return true;
+      });
+
+      const quickSel = document.getElementById('quickSelectResident');
+      const groupedByInst = {};
+      filtered.forEach(r => {
+        if (!groupedByInst[r.institution]) groupedByInst[r.institution] = [];
+        groupedByInst[r.institution].push(r);
+      });
+
+      let quickHtml = `<option value="">-- 預選個案 (${filtered.length} 位) --</option>`;
+      Object.keys(groupedByInst).forEach(instName => {
+        quickHtml += `<optgroup label="【${instName}】">`;
+        groupedByInst[instName].forEach(r => {
+          quickHtml += `<option value="${r.id}">${r.id} ${r.name} (CMS ${r.cms || '-'})</option>`;
+        });
+        quickHtml += `</optgroup>`;
+      });
+      quickSel.innerHTML = quickHtml;
+      if (filtered.some(r => r.id === selectedResidentId)) {
+        quickSel.value = selectedResidentId;
+      }
+
+      document.getElementById('filteredCountLabel').textContent = filtered.length;
+      const hasAnyFilter = Boolean(areaVal || instVal || kw);
+      document.getElementById('btnClearFilters').classList.toggle('hidden', !hasAnyFilter);
+
+      const tags = [];
+      if (areaVal) tags.push(areaVal);
+      if (instVal) tags.push(instVal);
+      if (kw) tags.push(`關鍵字:${kw}`);
+      document.getElementById('activeFilterTag').textContent = tags.length > 0 ? tags.join(' / ') : '全區總覽';
+
+      renderResidentList(filtered);
+      return filtered;
+    }
+
+    function renderResidentList(filteredList) {
+      const container = document.getElementById('residentListContainer');
+      if (!filteredList || filteredList.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">查無符合條件的住民資料</div>`;
+        return;
+      }
+
+      const areaBadgeColor = {
+        'A 區': 'bg-amber-100 text-amber-800',
+        'B 區': 'bg-sky-100 text-sky-800',
+        'C 區': 'bg-indigo-100 text-indigo-800',
+        'D 區': 'bg-emerald-100 text-emerald-800'
+      };
+
+      container.innerHTML = filteredList.map(r => {
+        const hasPre = Boolean(assessments[`${r.id}_pre`]);
+        const hasPost = Boolean(assessments[`${r.id}_post`]);
+        const isSelected = r.id === selectedResidentId;
+        const badgeCls = areaBadgeColor[r.area] || 'bg-slate-100 text-slate-700';
+
+        return `
+          <div onclick="selectResident('${r.id}', true)"
+            class="p-3 cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-teal-50 border-l-4 border-teal-600' : 'hover:bg-slate-50'}">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.2 rounded text-[10px] font-bold ${badgeCls}">${r.area}</span>
+                <span class="text-[11px] font-mono font-bold text-slate-500">${r.id}</span>
+                <span class="font-bold text-sm text-slate-800">${r.name}</span>
+                <span class="px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded text-[10px]">CMS ${r.cms || '-'}</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-0.5">${r.institution}</div>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${hasPre ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400'}">
+                前測 ${hasPre ? '✓' : '-'}
+              </span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${hasPost ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-400'}">
+                後測 ${hasPost ? '✓' : '-'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectResident(resId, syncAreaTab = true) {
+      selectedResidentId = resId;
+      const res = residents.find(r => r.id === resId) || residents[0];
+
+      if (syncAreaTab && res.area && document.getElementById('filterArea').value !== res.area) {
+        setAreaFilter(res.area, false);
+      }
+
+      document.getElementById('selectedAreaBadge').textContent = res.area || '未分區';
+      document.getElementById('selectedResId').textContent = res.id;
+      document.getElementById('selectedResName').textContent = res.name;
+      document.getElementById('selectedResMeta').textContent =
+        `${res.institution}｜CMS ${res.cms || '-'} 級｜${res.age || '-'} 歲`;
+
+      refreshCascadingFilters();
+      loadFormDataForResident(res);
+    }
+
+    // ================= 登入與管理者帳號權限管理 =================
+    function renderQuickAccountButtons() {
+      const box = document.getElementById('quickAccountButtons');
+      if (!box) return;
+      box.innerHTML = accounts.map(acc => `
+        <button type="button" onclick="quickFillLogin('${acc.username}', '${acc.password}')"
+          class="px-2.5 py-1 ${acc.role === 'admin' ? 'bg-purple-100 hover:bg-purple-200 text-purple-800' : 'bg-teal-100 hover:bg-teal-200 text-teal-800'} rounded font-medium transition">
+          ${acc.name} (${acc.username})
+        </button>
+      `).join('');
+    }
+
+    function quickFillLogin(u, p) {
+      document.getElementById('loginUsername').value = u;
+      document.getElementById('loginPassword').value = p;
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const u = document.getElementById('loginUsername').value.trim();
+      const p = document.getElementById('loginPassword').value.trim();
+      const matched = accounts.find(a => a.username === u && a.password === p);
+
+      const errBox = document.getElementById('loginError');
+      if (!matched) {
+        errBox.textContent = '❌ 帳號或密碼錯誤。請確認大小寫是否相符，或點擊上方「立即重整」同步雲端帳號。';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      errBox.classList.add('hidden');
+      currentUser = matched;
+      document.getElementById('loginModal').classList.add('hidden');
+      document.getElementById('currentUserDisplay').textContent = `${matched.name} (${matched.username})`;
+      document.getElementById('currentRoleDisplay').textContent = matched.role === 'admin' ? '最高管理者' : '現場施測人員';
+      document.getElementById('formEvaluatorTag').textContent = `${matched.name} (${matched.username})`;
+      document.getElementById('footerEvaluatorName').textContent = `${matched.name} (${matched.username})`;
+
+      if (matched.role === 'admin') {
+        document.getElementById('btnAccountManage').classList.remove('hidden');
+      } else {
+        document.getElementById('btnAccountManage').classList.add('hidden');
+      }
+      showToast(`歡迎登入，${matched.name}！`);
+    });
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('loginModal').classList.remove('hidden');
+      document.getElementById('loginPassword').value = '';
+    }
+
+    function openAccountModal() {
+      renderAccountTable();
+      document.getElementById('accountModal').classList.remove('hidden');
+    }
+
+    function renderAccountTable() {
+      const tbody = document.getElementById('accountTableBody');
+      tbody.innerHTML = accounts.map((acc, idx) => `
+        <tr>
+          <td class="p-2.5 font-mono font-bold">${acc.username}</td>
+          <td class="p-2.5">${acc.name}</td>
+          <td class="p-2.5 font-mono text-slate-600">${acc.password}</td>
+          <td class="p-2.5">
+            <span class="px-2 py-0.5 rounded text-[11px] font-semibold ${acc.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-teal-100 text-teal-800'}">
+              ${acc.role === 'admin' ? '管理者' : '施測員'}
+            </span>
+          </td>
+          <td class="p-2.5 text-right space-x-1">
+            <button type="button" onclick="changeAccountPass(${idx})" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-[11px]">改密碼</button>
+            ${acc.username !== 'admin' ? `<button type="button" onclick="deleteAccount(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[11px]">刪除</button>` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('createAccountForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('newAccUser').value.trim();
+      const password = document.getElementById('newAccPass').value.trim();
+      const name = document.getElementById('newAccName').value.trim();
+      if (accounts.some(a => a.username === username)) {
+        alert('此帳號已存在，請使用其他帳號名稱！');
+        return;
+      }
+      accounts.push({ username, password, name, role: 'evaluator' });
+      localStorage.setItem('rainforest_accounts_v4', JSON.stringify(accounts));
+      e.target.reset();
+      renderAccountTable();
+      renderQuickAccountButtons();
+      await syncAccountsToCloud(true);
+    });
+
+    async function changeAccountPass(idx) {
+      const newPass = prompt(`請輸入「${accounts[idx].name}」的新密碼：`, accounts[idx].password);
+      if (newPass && newPass.trim()) {
+        accounts[idx].password = newPass.trim();
+        localStorage.setItem('rainforest_accounts_v4', JSON.stringify(accounts));
+        renderAccountTable();
+        renderQuickAccountButtons();
+        await syncAccountsToCloud(true);
+      }
+    }
+
+    async function deleteAccount(idx) {
+      if (confirm(`確定要刪除帳號「${accounts[idx].name}」並同步更新雲端嗎？`)) {
+        accounts.splice(idx, 1);
+        localStorage.setItem('rainforest_accounts_v4', JSON.stringify(accounts));
+        renderAccountTable();
+        renderQuickAccountButtons();
+        await syncAccountsToCloud(true);
+      }
+    }
+
+    // ================= 新增住民與批次匯入 =================
+    function openAddResidentModal() {
+      const nextNum = residents.length + 1;
+      document.getElementById('newResId').value = `RES-${String(nextNum).padStart(3, '0')}`;
+      const curArea = document.getElementById('filterArea').value;
+      const curInst = document.getElementById('filterInstitution').value;
+      if (curArea) document.getElementById('newResArea').value = curArea;
+      if (curInst) document.getElementById('newResInst').value = curInst;
+      document.getElementById('addResidentModal').classList.remove('hidden');
+    }
+
+    function switchAddTab(tab) {
+      document.getElementById('singleResidentForm').classList.toggle('hidden', tab !== 'single');
+      document.getElementById('batchResidentBox').classList.toggle('hidden', tab !== 'batch');
+      document.getElementById('tabSingleAdd').className = tab === 'single' ? 'px-4 py-2 tab-active' : 'px-4 py-2 text-slate-500';
+      document.getElementById('tabBatchAdd').className = tab === 'batch' ? 'px-4 py-2 tab-active' : 'px-4 py-2 text-slate-500';
+    }
+
+    document.getElementById('singleResidentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newRes = {
+        id: document.getElementById('newResId').value,
+        area: document.getElementById('newResArea').value,
+        institution: document.getElementById('newResInst').value.trim(),
+        seq: residents.length + 1,
+        name: document.getElementById('newResName').value.trim(),
+        cms: document.getElementById('newResCms').value,
+        age: document.getElementById('newResAge').value,
+        idNo: document.getElementById('newResIdNo').value.trim()
+      };
+      residents.push(newRes);
+      localStorage.setItem('rainforest_residents_124_v4', JSON.stringify(residents));
+      updateAreaCounts();
+      closeModal('addResidentModal');
+      selectResident(newRes.id, true);
+      e.target.reset();
+
+      await postToGAS({
+        action: 'addResident',
+        evaluator: currentUser ? `${currentUser.name} (${currentUser.username})` : '系統管理',
+        resident: newRes
+      });
+      showToast(`已新增住民「${newRes.name}」(${newRes.area}) 並同步至 Google 雲端！`);
+    });
+
+    async function processBatchResidents() {
+      const raw = document.getElementById('batchResidentText').value.trim();
+      if (!raw) return;
+      const lines = raw.split(/\r?\n/);
+      const added = [];
+      lines.forEach(line => {
+        const cols = line.split(/\t|,/);
+        if (cols.length >= 3 && cols[2].trim()) {
+          const nextNum = residents.length + 1;
+          const item = {
+            id: `RES-${String(nextNum).padStart(3, '0')}`,
+            area: cols[0].trim() || 'A 區',
+            institution: cols[1].trim() || '未指定機構',
+            seq: nextNum,
+            name: cols[2].trim(),
+            cms: (cols[3] || '').trim(),
+            age: (cols[4] || '').trim(),
+            idNo: (cols[5] || '').trim()
+          };
+          residents.push(item);
+          added.push(item);
+        }
+      });
+      if (added.length > 0) {
+        localStorage.setItem('rainforest_residents_124_v4', JSON.stringify(residents));
+        updateAreaCounts();
+        refreshCascadingFilters();
+        closeModal('addResidentModal');
+        document.getElementById('batchResidentText').value = '';
+        await postToGAS({
+          action: 'batchAddResidents',
+          evaluator: currentUser ? `${currentUser.name} (${currentUser.username})` : '系統管理',
+          residents: added
+        });
+        showToast(`成功匯入 ${added.length} 筆住民資料並上傳 Google 雲端！`);
+      }
+    }
+
+    function resetDefaultResidents() {
+      if (confirm('確定要將名冊重置為原始 124 位住民名單嗎？')) {
+        residents = [...DEFAULT_RESIDENTS];
+        localStorage.setItem('rainforest_residents_124_v4', JSON.stringify(residents));
+        updateAreaCounts();
+        setAreaFilter('', false);
+        selectResident('RES-001', false);
+        showToast('已重置為 124 位預設住民名單');
+      }
+    }
+
+    // ================= 動態表單建構與前後測切換 =================
+    function buildFormDynamicWidgets() {
+      document.getElementById('chronicDiseaseGroup').innerHTML = CHRONIC_LIST.map(d => `
+        <label class="flex items-center gap-1.5 p-1.5 bg-slate-50 rounded border border-slate-200 cursor-pointer">
+          <input type="checkbox" name="chronic" value="${d}" class="rounded text-teal-600" />
+          <span>${d}</span>
+        </label>
+      `).join('');
+
+      document.getElementById('barthelContainer').innerHTML = BARTHEL_ITEMS.map(item => `
+        <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+          <label class="block font-semibold text-slate-700 mb-1">${item.title}</label>
+          <select id="${item.id}" onchange="calcBarthelScore()" class="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white">
+            ${item.opts.map(o => `<option value="${o.v}">${o.t}</option>`).join('')}
+          </select>
+        </div>
+      `).join('');
+
+      document.getElementById('mnaContainer').innerHTML = MNA_ITEMS.map(item => `
+        <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+          <label class="block font-semibold text-slate-700 mb-1">${item.title}</label>
+          <select id="${item.id}" onchange="calcMnaScore()" class="w-full px-2.5 py-1.5 border border-slate-300 rounded bg-white">
+            ${item.opts.map(o => `<option value="${o.v}">${o.t}</option>`).join('')}
+          </select>
+        </div>
+      `).join('');
+    }
+
+    function switchTimepoint(tp) {
+      currentTimepoint = tp;
+      const btnPre = document.getElementById('btnTimepointPre');
+      const btnPost = document.getElementById('btnTimepointPost');
+      if (tp === 'pre') {
+        btnPre.className = 'px-4 py-2 rounded-lg text-xs font-bold transition bg-teal-600 text-white shadow';
+        btnPost.className = 'px-4 py-2 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900';
+      } else {
+        btnPost.className = 'px-4 py-2 rounded-lg text-xs font-bold transition bg-sky-600 text-white shadow';
+        btnPre.className = 'px-4 py-2 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900';
+      }
+      const res = residents.find(r => r.id === selectedResidentId);
+      loadFormDataForResident(res);
+    }
+
+    function loadFormDataForResident(res) {
+      const key = `${res.id}_${currentTimepoint}`;
+      const saved = assessments[key];
+      const preSaved = assessments[`${res.id}_pre`];
+
+      document.getElementById('dem_birthRocYear').value = saved?.dem_birthRocYear || preSaved?.dem_birthRocYear || '';
+      document.getElementById('dem_birthMonth').value = saved?.dem_birthMonth || preSaved?.dem_birthMonth || '';
+      document.getElementById('dem_birthDay').value = saved?.dem_birthDay || preSaved?.dem_birthDay || '';
+
+      document.getElementById('dem_age').value = saved?.dem_age || res.age || '';
+      document.getElementById('dem_cms').value = saved?.dem_cms || res.cms || '6';
+      const inferredGender = (res.idNo && res.idNo[1] === '2') ? '女' : '男';
+      document.getElementById('dem_gender').value = saved?.dem_gender || inferredGender;
+      document.getElementById('dem_stayYear').value = saved?.dem_stayYear || '';
+      document.getElementById('dem_stayMonth').value = saved?.dem_stayMonth || '';
+      document.getElementById('dem_lang').value = saved?.dem_lang || '台語';
+      document.getElementById('dem_marital').value = saved?.dem_marital || '已婚';
+      document.getElementById('dem_edu').value = saved?.dem_edu || '國小';
+      document.getElementById('dem_religion').value = saved?.dem_religion || '道教';
+      if (saved?.evalDate) document.getElementById('evalDate').value = saved.evalDate;
+
+      if (document.getElementById('dem_birthRocYear').value) {
+        calculateAgeFromBirthday();
+      } else {
+        document.getElementById('birthAutoHint').textContent = '';
+        document.getElementById('ageAutoBadge').classList.add('hidden');
+        syncAgeToScreening();
+      }
+
+      document.querySelectorAll('input[name="chronic"]').forEach(cb => {
+        cb.checked = saved?.chronics ? saved.chronics.includes(cb.value) : false;
+      });
+
+      BARTHEL_ITEMS.forEach(b => {
+        document.getElementById(b.id).value = saved?.barthel?.[b.id] ?? b.opts[b.opts.length - 1].v;
+      });
+      MNA_ITEMS.forEach(m => {
+        document.getElementById(m.id).value = saved?.mna?.[m.id] ?? m.opts[0].v;
+      });
+
+      document.getElementById('grip_hand').value = saved?.grip_hand || preSaved?.grip_hand || '優勢手';
+      document.getElementById('grip_pre').value = saved?.grip_pre ?? preSaved?.grip_pre ?? '';
+      document.getElementById('grip_post').value = saved?.grip_post ?? '';
+
+      document.getElementById('bike_min').value = saved?.bike_min || preSaved?.bike_min || 5;
+      document.getElementById('bike_res').value = saved?.bike_res || preSaved?.bike_res || 1;
+      document.getElementById('bike_pre').value = saved?.bike_pre ?? preSaved?.bike_pre ?? '';
+      document.getElementById('bike_post').value = saved?.bike_post ?? '';
+
+      document.getElementById('ind_pressure_val').value = saved?.ind_pressure_val || '';
+      document.getElementById('ind_pressure_note').value = saved?.ind_pressure_note || '';
+      document.getElementById('ind_rehab_val').value = saved?.ind_rehab_val || '';
+      document.getElementById('ind_rehab_note').value = saved?.ind_rehab_note || '';
+      document.getElementById('ind_pneumonia_val').value = saved?.ind_pneumonia_val || '';
+      document.getElementById('ind_pneumonia_note').value = saved?.ind_pneumonia_note || '';
+
+      updateScreeningResult();
+      calcBarthelScore();
+      calcMnaScore();
+      calcPerformanceMetrics();
+    }
+
+    function updateScreeningResult() {
+      const ok = document.getElementById('scr_age65').value === 'yes' &&
+                 document.getElementById('scr_cms67').value === 'yes' &&
+                 document.getElementById('scr_spinal').value === 'no' &&
+                 document.getElementById('scr_msk').value === 'no' &&
+                 document.getElementById('scr_risk').value === 'no' &&
+                 document.getElementById('scr_cardio').value === 'no';
+      const badge = document.getElementById('screeningResultBadge');
+      if (ok) {
+        badge.textContent = '✅ 符合收案條件';
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+      } else {
+        badge.textContent = '⚠️ 不符合收案條件';
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800';
+      }
+      return ok ? '符合收案條件' : '不符合收案條件';
+    }
+
+    function calcBarthelScore() {
+      let total = 0;
+      BARTHEL_ITEMS.forEach(b => total += Number(document.getElementById(b.id).value || 0));
+      document.getElementById('barthelTotalScore').textContent = total;
+      let grade = '完全依賴';
+      if (total === 100) grade = '完全獨立';
+      else if (total >= 91) grade = '輕度依賴';
+      else if (total >= 61) grade = '中度依賴';
+      else if (total >= 21) grade = '重度依賴';
+      document.getElementById('barthelGradeTag').textContent = grade;
+      return total;
+    }
+
+    function calcMnaScore() {
+      let screen = 0, total = 0;
+      ['mA', 'mB', 'mC', 'mD', 'mE', 'mF'].forEach(id => screen += parseFloat(document.getElementById(id).value || 0));
+      MNA_ITEMS.forEach(m => total += parseFloat(document.getElementById(m.id).value || 0));
+      document.getElementById('mnaScreenScore').textContent = screen.toFixed(1).replace('.0', '');
+      document.getElementById('mnaTotalScore').textContent = total.toFixed(1).replace('.0', '');
+
+      const tag = document.getElementById('mnaStatusTag');
+      if (total >= 24) {
+        tag.textContent = '正常營養狀況';
+        tag.className = 'px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold';
+      } else if (total >= 17) {
+        tag.textContent = '有營養不良風險';
+        tag.className = 'px-2.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold';
+      } else {
+        tag.textContent = '營養不良';
+        tag.className = 'px-2.5 py-0.5 rounded bg-rose-100 text-rose-800 font-bold';
+      }
+      return { screen, total };
+    }
+
+    function calcPerformanceMetrics() {
+      const gPre = parseFloat(document.getElementById('grip_pre').value);
+      const gPost = parseFloat(document.getElementById('grip_post').value);
+      const gBadge = document.getElementById('gripTargetBadge');
+      let gRate = '';
+      if (gPre > 0 && !isNaN(gPost)) {
+        const pct = ((gPost - gPre) / gPre) * 100;
+        gRate = pct.toFixed(1) + '%';
+        document.getElementById('grip_rate').textContent = gRate;
+        if (pct >= 10) {
+          gBadge.textContent = '✅ 達標 (≥10%)';
+          gBadge.className = 'px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold';
+        } else {
+          gBadge.textContent = '未達標 (<10%)';
+          gBadge.className = 'px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold';
+        }
+      } else {
+        document.getElementById('grip_rate').textContent = '0.0%';
+        gBadge.textContent = '待計算 (目標 ≥10%)';
+        gBadge.className = 'px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold';
+      }
+
+      const bPre = parseFloat(document.getElementById('bike_pre').value);
+      const bPost = parseFloat(document.getElementById('bike_post').value);
+      const bBadge = document.getElementById('bikeTargetBadge');
+      let bRate = '';
+      if (bPre > 0 && !isNaN(bPost)) {
+        const pct = ((bPost - bPre) / bPre) * 100;
+        bRate = pct.toFixed(1) + '%';
+        document.getElementById('bike_rate').textContent = bRate;
+        if (pct >= 15) {
+          bBadge.textContent = '✅ 達標 (≥15%)';
+          bBadge.className = 'px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold';
+        } else {
+          bBadge.textContent = '未達標 (<15%)';
+          bBadge.className = 'px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold';
+        }
+      } else {
+        document.getElementById('bike_rate').textContent = '0.0%';
+        bBadge.textContent = '待計算 (目標 ≥15%)';
+        bBadge.className = 'px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold';
+      }
+      return { gRate, bRate };
+    }
+
+    // ================= 儲存並上傳至 GAS =================
+    async function saveCurrentAssessment(uploadToCloud) {
+      const res = residents.find(r => r.id === selectedResidentId);
+      const barthelObj = {};
+      BARTHEL_ITEMS.forEach(b => barthelObj[b.id] = Number(document.getElementById(b.id).value));
+      const mnaObj = {};
+      MNA_ITEMS.forEach(m => mnaObj[m.id] = parseFloat(document.getElementById(m.id).value));
+      const chronics = [...document.querySelectorAll('input[name="chronic"]:checked')].map(c => c.value);
+      const barthelTotal = calcBarthelScore();
+      const mnaScores = calcMnaScore();
+      const perf = calcPerformanceMetrics();
+
+      const record = {
+        residentId: res.id,
+        area: res.area,
+        institution: res.institution,
+        residentName: res.name,
+        idNo: res.idNo,
+        timepoint: currentTimepoint,
+        timepointLabel: currentTimepoint === 'pre' ? '前測' : '後測',
+        evalDate: document.getElementById('evalDate').value,
+        evaluator: currentUser ? `${currentUser.name} (${currentUser.username})` : '未登入施測者',
+        screeningResult: updateScreeningResult(),
+        dem_birthRocYear: document.getElementById('dem_birthRocYear').value,
+        dem_birthMonth: document.getElementById('dem_birthMonth').value,
+        dem_birthDay: document.getElementById('dem_birthDay').value,
+        dem_age: document.getElementById('dem_age').value,
+        dem_gender: document.getElementById('dem_gender').value,
+        dem_cms: document.getElementById('dem_cms').value,
+        dem_stayYear: document.getElementById('dem_stayYear').value,
+        dem_stayMonth: document.getElementById('dem_stayMonth').value,
+        dem_lang: document.getElementById('dem_lang').value,
+        dem_marital: document.getElementById('dem_marital').value,
+        dem_edu: document.getElementById('dem_edu').value,
+        dem_religion: document.getElementById('dem_religion').value,
+        chronics,
+        barthel: barthelObj,
+        barthelTotal,
+        mna: mnaObj,
+        mnaScreen: mnaScores.screen,
+        mnaTotal: mnaScores.total,
+        grip_hand: document.getElementById('grip_hand').value,
+        grip_pre: document.getElementById('grip_pre').value,
+        grip_post: document.getElementById('grip_post').value,
+        grip_rate: perf.gRate,
+        bike_min: document.getElementById('bike_min').value,
+        bike_res: document.getElementById('bike_res').value,
+        bike_pre: document.getElementById('bike_pre').value,
+        bike_post: document.getElementById('bike_post').value,
+        bike_rate: perf.bRate,
+        ind_pressure_val: document.getElementById('ind_pressure_val').value,
+        ind_pressure_note: document.getElementById('ind_pressure_note').value,
+        ind_rehab_val: document.getElementById('ind_rehab_val').value,
+        ind_rehab_note: document.getElementById('ind_rehab_note').value,
+        ind_pneumonia_val: document.getElementById('ind_pneumonia_val').value,
+        ind_pneumonia_note: document.getElementById('ind_pneumonia_note').value,
+        updatedAt: new Date().toLocaleString('zh-TW')
+      };
+
+      assessments[`${res.id}_${currentTimepoint}`] = record;
+      localStorage.setItem('rainforest_assessments_v4', JSON.stringify(assessments));
+      refreshCascadingFilters();
+
+      if (uploadToCloud) {
+        showToast('⏳ 正在上傳至 Google 雲端試算表...');
+        const ok = await postToGAS({ action: 'saveAssessment', data: record });
+        if (ok) {
+          document.getElementById('lastSyncTime').textContent = record.updatedAt;
+          showToast(`✅ 「${res.name}」${record.timepointLabel}資料已成功上傳並更新對照總表！`);
+        }
+      } else {
+        showToast(`💾 已儲存於本機瀏覽器 (${res.name} - ${record.timepointLabel})`);
+      }
+    }
+
+    async function syncAllResidentsToGAS() {
+      if (!confirm(`確定要將目前共 ${residents.length} 位住民名冊整批同步至 Google 雲端試算表嗎？`)) return;
+      showToast('⏳ 正在同步完整名冊至 Google 雲端...');
+      const ok = await postToGAS({
+        action: 'syncFullRoster',
+        evaluator: currentUser ? `${currentUser.name} (${currentUser.username})` : '系統管理',
+        residents
+      });
+      if (ok) {
+        document.getElementById('lastSyncTime').textContent = new Date().toLocaleString('zh-TW');
+        showToast(`✅ 已將 ${residents.length} 筆住民名冊完整上傳至 Google 雲端！`);
+      }
+    }
+
+    async function postToGAS(payload) {
+      const url = getGasUrl();
+      try {
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        return true;
+      } catch (err) {
+        console.error(err);
+        showToast('❌ 雲端連線發生異常，資料已先保留於本機');
+        return false;
+      }
+    }
+
+    function openGasModal() {
+      document.getElementById('gasUrlInput').value = getGasUrl();
+      document.getElementById('gasModal').classList.remove('hidden');
+    }
+
+    function saveGasUrl() {
+      const val = document.getElementById('gasUrlInput').value.trim();
+      if (val) {
+        localStorage.setItem('rainforest_gas_url_v4', val);
+        showToast('✅ 已更新 GAS 雲端網址');
+      }
+    }
+
+    function resetDefaultGasUrl() {
+      localStorage.setItem('rainforest_gas_url_v4', DEFAULT_GAS_URL);
+      document.getElementById('gasUrlInput').value = DEFAULT_GAS_URL;
+      showToast('✅ 已恢復為最新預設 GAS 網址');
+    }
+
+    async function testGasConnection() {
+      const box = document.getElementById('gasTestResult');
+      box.classList.remove('hidden');
+      box.className = 'p-2.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-800';
+      box.textContent = '⏳ 正在測試 Google Apps Script 雙向讀取與寫入...';
+      try {
+        const json = await fetchCloudPayload('getAccounts');
+        await postToGAS({ action: 'ping', timestamp: new Date().toISOString() });
+        if (json && json.status === 'ok') {
+          box.className = 'p-2.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800';
+          box.textContent = `✅ 雙向連線成功！雲端目前共有 ${json.accounts.length} 組帳號資料。`;
+        }
+      } catch (e) {
+        box.className = 'p-2.5 rounded-lg text-xs font-medium bg-rose-50 text-rose-800';
+        box.textContent = '❌ 讀取測試失敗，請確認 GAS 部署權限設為「所有人 (Anyone)」並已建立新版本。';
+      }
+    }
+
+    function exportAllAssessmentsCSV() {
+      const keys = Object.keys(assessments);
+      if (keys.length === 0) {
+        alert('目前尚無已儲存的前後測紀錄可匯出！');
+        return;
+      }
+      const headers = ['編號', '區域', '機構', '姓名', '時點', '評估日期', '施測者', '篩選結果', '出生民國年', '實歲', '巴氏總分', 'MNA篩選', 'MNA總分', '前測握力', '後測握力', '握力增加率', '前測腳踏車', '後測腳踏車', '腳踏車進步率'];
+      const rows = keys.map(k => {
+        const d = assessments[k];
+        return [d.residentId, d.area, d.institution, d.residentName, d.timepointLabel, d.evalDate, d.evaluator, d.screeningResult, d.dem_birthRocYear || '', d.dem_age, d.barthelTotal, d.mnaScreen, d.mnaTotal, d.grip_pre, d.grip_post, d.grip_rate, d.bike_pre, d.bike_post, d.bike_rate];
+      });
+      const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `屏東雨林計畫_前後測數據_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => t.classList.add('hidden'), 3800);
+    }
+  </script>
+</body>
+</html>
