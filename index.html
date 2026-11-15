@@ -131,32 +131,77 @@
   <!-- ================= 3. 主工作區 ================= -->
   <main class="max-w-7xl mx-auto px-4 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-    <!-- 左側：住民名單篩選與選擇 (4欄) -->
+    <!-- 左側：A/B/C/D 四區分類與個案預篩選 (4欄) -->
     <aside class="lg:col-span-4 bg-white rounded-xl card-shadow border border-slate-200 flex flex-col h-[calc(100vh-110px)] sticky top-20">
-      <div class="p-4 border-b border-slate-100 space-y-2.5">
+      <div class="p-4 border-b border-slate-100 space-y-3">
         <div class="flex items-center justify-between">
-          <h2 class="font-bold text-slate-800 text-sm">受試住民名冊清單</h2>
+          <h2 class="font-bold text-slate-800 text-sm">受試住民分區與預篩選</h2>
           <button onclick="resetDefaultResidents()" class="text-[11px] text-orange-600 hover:underline font-medium">
             重置 124 位預設名單
           </button>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <select id="filterArea" onchange="renderResidentList()"
-            class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:ring-2 focus:ring-teal-500 outline-none">
-            <option value="">全部區域 (A~D區)</option>
-            <option value="A 區">A 區</option>
-            <option value="B 區">B 區</option>
-            <option value="C 區">C 區</option>
-            <option value="D 區">D 區</option>
-          </select>
-          <select id="filterInstitution" onchange="renderResidentList()"
-            class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:ring-2 focus:ring-teal-500 outline-none">
-            <option value="">全部機構 (24家)</option>
-          </select>
+
+        <!-- 步驟 1：ABCD 四區快速分類標籤 -->
+        <div>
+          <div class="text-[11px] font-semibold text-slate-500 mb-1.5">1. 選擇分區（點擊篩選該區機構與個案）：</div>
+          <div id="areaTabGroup" class="grid grid-cols-5 gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button type="button" data-area="" onclick="setAreaFilter('')"
+              class="area-tab py-1.5 rounded text-[11px] font-bold bg-teal-600 text-white shadow-sm transition">
+              全部<span id="count_ALL" class="block text-[10px] font-normal opacity-90">124</span>
+            </button>
+            <button type="button" data-area="A 區" onclick="setAreaFilter('A 區')"
+              class="area-tab py-1.5 rounded text-[11px] font-semibold text-slate-600 hover:bg-white transition">
+              A 區<span id="count_A" class="block text-[10px] font-normal text-slate-400">29</span>
+            </button>
+            <button type="button" data-area="B 區" onclick="setAreaFilter('B 區')"
+              class="area-tab py-1.5 rounded text-[11px] font-semibold text-slate-600 hover:bg-white transition">
+              B 區<span id="count_B" class="block text-[10px] font-normal text-slate-400">31</span>
+            </button>
+            <button type="button" data-area="C 區" onclick="setAreaFilter('C 區')"
+              class="area-tab py-1.5 rounded text-[11px] font-semibold text-slate-600 hover:bg-white transition">
+              C 區<span id="count_C" class="block text-[10px] font-normal text-slate-400">33</span>
+            </button>
+            <button type="button" data-area="D 區" onclick="setAreaFilter('D 區')"
+              class="area-tab py-1.5 rounded text-[11px] font-semibold text-slate-600 hover:bg-white transition">
+              D 區<span id="count_D" class="block text-[10px] font-normal text-slate-400">31</span>
+            </button>
+          </div>
+          <input type="hidden" id="filterArea" value="" />
         </div>
-        <input type="text" id="searchResident" oninput="renderResidentList()"
-          placeholder="🔍 搜尋姓名、編號或身分證字號..."
-          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" />
+
+        <!-- 步驟 2：機構與個案姓名連動預篩選 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">2. 篩選機構</label>
+            <select id="filterInstitution" onchange="onInstitutionFilterChange()"
+              class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:ring-2 focus:ring-teal-500 outline-none">
+              <option value="">全部機構</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 mb-1">3. 個案名稱預選</label>
+            <select id="quickSelectResident" onchange="onQuickSelectResidentChange()"
+              class="w-full px-2.5 py-1.5 border border-teal-300 rounded-lg text-xs bg-teal-50/60 font-semibold text-teal-900 focus:ring-2 focus:ring-teal-500 outline-none">
+              <option value="">-- 選擇個案 --</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 關鍵字快搜 -->
+        <div class="relative">
+          <input type="text" id="searchResident" oninput="onSearchInput()"
+            placeholder="🔍 輸入姓名、編號或身分證快速過濾..."
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none pr-14" />
+          <button type="button" id="btnClearFilters" onclick="clearAllFilters()"
+            class="hidden absolute right-2 top-1.5 px-2 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-[10px] font-semibold">
+            清除
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+          <span>目前篩選顯示：<strong id="filteredCountLabel" class="text-teal-700">124</strong> 位個案</span>
+          <span id="activeFilterTag" class="text-slate-400">全區總覽</span>
+        </div>
       </div>
 
       <div id="residentListContainer" class="flex-1 overflow-y-auto divide-y divide-slate-100">
@@ -170,10 +215,11 @@
       <!-- 個案標題與前測/後測切換列 -->
       <div class="bg-white rounded-xl card-shadow border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="selectedAreaBadge" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-bold rounded">A 區</span>
             <span id="selectedResId" class="px-2 py-0.5 bg-teal-100 text-teal-800 text-xs font-bold rounded">RES-001</span>
             <h2 id="selectedResName" class="text-xl font-bold text-slate-800">王天河</h2>
-            <span id="selectedResMeta" class="text-xs text-slate-500">A 區｜屏東醫院附設護理之家｜CMS 6 級｜89 歲</span>
+            <span id="selectedResMeta" class="text-xs text-slate-500">屏東醫院附設護理之家｜CMS 6 級｜89 歲</span>
           </div>
           <p class="text-xs text-slate-500 mt-1">
             目前施測人員：<strong id="formEvaluatorTag" class="text-teal-700">-</strong>
@@ -828,9 +874,9 @@
     window.addEventListener('DOMContentLoaded', async () => {
       loadLocalFallback();
       buildFormDynamicWidgets();
-      populateInstitutionOptions();
-      renderResidentList();
-      selectResident('RES-001');
+      updateAreaCounts();
+      refreshCascadingFilters();
+      selectResident('RES-001', false);
       document.getElementById('evalDate').valueAsDate = new Date();
       await syncFromCloud(false);
     });
@@ -847,7 +893,6 @@
       const savedAss = localStorage.getItem('rainforest_assessments_v3');
       assessments = savedAss ? JSON.parse(savedAss) : {};
 
-      // 強制更新為最新提供的 GAS 網址
       if (!localStorage.getItem('rainforest_gas_url_v3')) {
         localStorage.setItem('rainforest_gas_url_v3', DEFAULT_GAS_URL);
       }
@@ -887,8 +932,8 @@
             localStorage.setItem('rainforest_assessments_v3', JSON.stringify(assessments));
           }
 
-          populateInstitutionOptions();
-          renderResidentList();
+          updateAreaCounts();
+          refreshCascadingFilters();
           const curRes = residents.find(r => r.id === selectedResidentId) || residents[0];
           if (curRes) loadFormDataForResident(curRes);
           if (!document.getElementById('accountModal').classList.contains('hidden')) renderAccountTable();
@@ -912,6 +957,198 @@
       if (ok && notify) {
         showToast('✅ 施測者帳號清冊已成功同步至 Google 雲端！');
       }
+    }
+
+    // ================= ABCD 四區分類與個案名稱連動預篩選 =================
+    function updateAreaCounts() {
+      document.getElementById('totalResidentBadge').textContent = residents.length;
+      document.getElementById('count_ALL').textContent = residents.length;
+      document.getElementById('count_A').textContent = residents.filter(r => r.area === 'A 區').length;
+      document.getElementById('count_B').textContent = residents.filter(r => r.area === 'B 區').length;
+      document.getElementById('count_C').textContent = residents.filter(r => r.area === 'C 區').length;
+      document.getElementById('count_D').textContent = residents.filter(r => r.area === 'D 區').length;
+
+      // 更新新增住民彈窗內的機構自動完成清單
+      const allInsts = [...new Set(residents.map(r => r.institution).filter(Boolean))];
+      document.getElementById('instDatalist').innerHTML = allInsts.map(i => `<option value="${i}">`).join('');
+    }
+
+    function setAreaFilter(areaVal, autoSelectFirst = true) {
+      document.getElementById('filterArea').value = areaVal;
+
+      // 更新 ABCD 分區按鈕視覺樣式
+      document.querySelectorAll('.area-tab').forEach(btn => {
+        const isCurrent = btn.getAttribute('data-area') === areaVal;
+        const span = btn.querySelector('span');
+        if (isCurrent) {
+          btn.className = 'area-tab py-1.5 rounded text-[11px] font-bold bg-teal-600 text-white shadow-sm transition';
+          if (span) span.className = 'block text-[10px] font-normal opacity-90';
+        } else {
+          btn.className = 'area-tab py-1.5 rounded text-[11px] font-semibold text-slate-600 hover:bg-white transition';
+          if (span) span.className = 'block text-[10px] font-normal text-slate-400';
+        }
+      });
+
+      // 切換區域時重置機構篩選，讓該區所有機構與個案自動預篩選出來
+      document.getElementById('filterInstitution').value = '';
+      const filtered = refreshCascadingFilters();
+
+      // 若目前選中的個案不在該區域內，自動選取該區第一位個案以方便立即預覽
+      if (autoSelectFirst && filtered.length > 0 && !filtered.some(r => r.id === selectedResidentId)) {
+        selectResident(filtered[0].id, false);
+      }
+    }
+
+    function onInstitutionFilterChange() {
+      const filtered = refreshCascadingFilters();
+      if (filtered.length > 0 && !filtered.some(r => r.id === selectedResidentId)) {
+        selectResident(filtered[0].id, false);
+      }
+    }
+
+    function onQuickSelectResidentChange() {
+      const resId = document.getElementById('quickSelectResident').value;
+      if (resId) {
+        selectResident(resId, true);
+      }
+    }
+
+    function onSearchInput() {
+      refreshCascadingFilters();
+    }
+
+    function clearAllFilters() {
+      document.getElementById('searchResident').value = '';
+      document.getElementById('filterInstitution').value = '';
+      setAreaFilter('', false);
+    }
+
+    function refreshCascadingFilters() {
+      const areaVal = document.getElementById('filterArea').value;
+      const instSel = document.getElementById('filterInstitution');
+      const prevInst = instSel.value;
+      const kw = document.getElementById('searchResident').value.trim().toLowerCase();
+
+      // 1. 依所選區域預篩選機構清單
+      const areaResidents = areaVal ? residents.filter(r => r.area === areaVal) : residents;
+      const scopedInsts = [...new Set(areaResidents.map(r => r.institution).filter(Boolean))];
+
+      instSel.innerHTML = `<option value="">${areaVal ? areaVal + '全部機構' : '全部機構'} (${scopedInsts.length}家)</option>` +
+        scopedInsts.map(i => `<option value="${i}">${i}</option>`).join('');
+
+      if (scopedInsts.includes(prevInst)) {
+        instSel.value = prevInst;
+      } else {
+        instSel.value = '';
+      }
+      const instVal = instSel.value;
+
+      // 2. 依區域 + 機構 + 關鍵字預篩選個案清單
+      const filtered = areaResidents.filter(r => {
+        if (instVal && r.institution !== instVal) return false;
+        if (kw && !(`${r.id} ${r.name} ${r.institution} ${r.idNo}`).toLowerCase().includes(kw)) return false;
+        return true;
+      });
+
+      // 3. 更新「個案名稱預選」下拉選單（按機構分組顯示）
+      const quickSel = document.getElementById('quickSelectResident');
+      const groupedByInst = {};
+      filtered.forEach(r => {
+        if (!groupedByInst[r.institution]) groupedByInst[r.institution] = [];
+        groupedByInst[r.institution].push(r);
+      });
+
+      let quickHtml = `<option value="">-- 預選個案 (${filtered.length} 位) --</option>`;
+      Object.keys(groupedByInst).forEach(instName => {
+        quickHtml += `<optgroup label="【${instName}】">`;
+        groupedByInst[instName].forEach(r => {
+          quickHtml += `<option value="${r.id}">${r.id} ${r.name} (CMS ${r.cms || '-'})</option>`;
+        });
+        quickHtml += `</optgroup>`;
+      });
+      quickSel.innerHTML = quickHtml;
+      if (filtered.some(r => r.id === selectedResidentId)) {
+        quickSel.value = selectedResidentId;
+      }
+
+      // 4. 更新狀態標籤與清除按鈕
+      document.getElementById('filteredCountLabel').textContent = filtered.length;
+      const hasAnyFilter = Boolean(areaVal || instVal || kw);
+      document.getElementById('btnClearFilters').classList.toggle('hidden', !hasAnyFilter);
+
+      const tags = [];
+      if (areaVal) tags.push(areaVal);
+      if (instVal) tags.push(instVal);
+      if (kw) tags.push(`關鍵字:${kw}`);
+      document.getElementById('activeFilterTag').textContent = tags.length > 0 ? tags.join(' / ') : '全區總覽';
+
+      // 5. 渲染左側個案卡片列表
+      renderResidentList(filtered);
+      return filtered;
+    }
+
+    function renderResidentList(filteredList) {
+      const container = document.getElementById('residentListContainer');
+      if (!filteredList || filteredList.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">查無符合條件的住民資料</div>`;
+        return;
+      }
+
+      const areaBadgeColor = {
+        'A 區': 'bg-amber-100 text-amber-800',
+        'B 區': 'bg-sky-100 text-sky-800',
+        'C 區': 'bg-indigo-100 text-indigo-800',
+        'D 區': 'bg-emerald-100 text-emerald-800'
+      };
+
+      container.innerHTML = filteredList.map(r => {
+        const hasPre = Boolean(assessments[`${r.id}_pre`]);
+        const hasPost = Boolean(assessments[`${r.id}_post`]);
+        const isSelected = r.id === selectedResidentId;
+        const badgeCls = areaBadgeColor[r.area] || 'bg-slate-100 text-slate-700';
+
+        return `
+          <div onclick="selectResident('${r.id}', true)"
+            class="p-3 cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-teal-50 border-l-4 border-teal-600' : 'hover:bg-slate-50'}">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.2 rounded text-[10px] font-bold ${badgeCls}">${r.area}</span>
+                <span class="text-[11px] font-mono font-bold text-slate-500">${r.id}</span>
+                <span class="font-bold text-sm text-slate-800">${r.name}</span>
+                <span class="px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded text-[10px]">CMS ${r.cms || '-'}</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-0.5">${r.institution}</div>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${hasPre ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400'}">
+                前測 ${hasPre ? '✓' : '-'}
+              </span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${hasPost ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-400'}">
+                後測 ${hasPost ? '✓' : '-'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectResident(resId, syncAreaTab = true) {
+      selectedResidentId = resId;
+      const res = residents.find(r => r.id === resId) || residents[0];
+
+      // 當選取某位個案時，自動將該個案所屬區域歸類並同步預篩選該區個案名單
+      if (syncAreaTab && res.area && document.getElementById('filterArea').value !== res.area) {
+        setAreaFilter(res.area, false);
+      }
+
+      document.getElementById('selectedAreaBadge').textContent = res.area || '未分區';
+      document.getElementById('selectedResId').textContent = res.id;
+      document.getElementById('selectedResName').textContent = res.name;
+      document.getElementById('selectedResMeta').textContent =
+        `${res.institution}｜CMS ${res.cms || '-'} 級｜${res.age || '-'} 歲`;
+
+      refreshCascadingFilters();
+      loadFormDataForResident(res);
     }
 
     // ================= 登入與管理者帳號權限管理 =================
@@ -1015,64 +1252,7 @@
       }
     }
 
-    // ================= 住民名冊與新增 =================
-    function populateInstitutionOptions() {
-      const insts = [...new Set(residents.map(r => r.institution).filter(Boolean))];
-      const sel = document.getElementById('filterInstitution');
-      sel.innerHTML = `<option value="">全部機構 (${insts.length}家)</option>` +
-        insts.map(i => `<option value="${i}">${i}</option>`).join('');
-
-      const dl = document.getElementById('instDatalist');
-      dl.innerHTML = insts.map(i => `<option value="${i}">`).join('');
-      document.getElementById('totalResidentBadge').textContent = residents.length;
-    }
-
-    function renderResidentList() {
-      const areaVal = document.getElementById('filterArea').value;
-      const instVal = document.getElementById('filterInstitution').value;
-      const kw = document.getElementById('searchResident').value.trim().toLowerCase();
-
-      const filtered = residents.filter(r => {
-        if (areaVal && r.area !== areaVal) return false;
-        if (instVal && r.institution !== instVal) return false;
-        if (kw && !(`${r.id} ${r.name} ${r.institution} ${r.idNo}`).toLowerCase().includes(kw)) return false;
-        return true;
-      });
-
-      const container = document.getElementById('residentListContainer');
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">查無符合條件的住民資料</div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(r => {
-        const hasPre = Boolean(assessments[`${r.id}_pre`]);
-        const hasPost = Boolean(assessments[`${r.id}_post`]);
-        const isSelected = r.id === selectedResidentId;
-        return `
-          <div onclick="selectResident('${r.id}')"
-            class="p-3 cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-teal-50 border-l-4 border-teal-600' : 'hover:bg-slate-50'}">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="text-[11px] font-mono font-bold text-slate-500">${r.id}</span>
-                <span class="font-bold text-sm text-slate-800">${r.name}</span>
-                <span class="px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded text-[10px]">CMS ${r.cms || '-'}</span>
-              </div>
-              <div class="text-[11px] text-slate-500 mt-0.5">${r.area}｜${r.institution}</div>
-            </div>
-            <div class="flex flex-col items-end gap-1">
-              <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${hasPre ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400'}">
-                前測 ${hasPre ? '✓' : '-'}
-              </span>
-              <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${hasPost ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-400'}">
-                後測 ${hasPost ? '✓' : '-'}
-              </span>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
+    // ================= 新增住民與批次匯入 =================
     function openAddResidentModal() {
       const nextNum = residents.length + 1;
       document.getElementById('newResId').value = `RES-${String(nextNum).padStart(3, '0')}`;
@@ -1104,10 +1284,9 @@
       };
       residents.push(newRes);
       localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents));
-      populateInstitutionOptions();
-      renderResidentList();
+      updateAreaCounts();
       closeModal('addResidentModal');
-      selectResident(newRes.id);
+      selectResident(newRes.id, true);
       e.target.reset();
 
       await postToGAS({
@@ -1115,7 +1294,7 @@
         evaluator: currentUser ? `${currentUser.name} (${currentUser.username})` : '系統管理',
         resident: newRes
       });
-      showToast(`已新增住民「${newRes.name}」並同步至 Google 雲端！`);
+      showToast(`已新增住民「${newRes.name}」(${newRes.area}) 並同步至 Google 雲端！`);
     });
 
     async function processBatchResidents() {
@@ -1143,8 +1322,8 @@
       });
       if (added.length > 0) {
         localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents));
-        populateInstitutionOptions();
-        renderResidentList();
+        updateAreaCounts();
+        refreshCascadingFilters();
         closeModal('addResidentModal');
         document.getElementById('batchResidentText').value = '';
         await postToGAS({
@@ -1160,9 +1339,9 @@
       if (confirm('確定要將名冊重置為原始 124 位住民名單嗎？')) {
         residents = [...DEFAULT_RESIDENTS];
         localStorage.setItem('rainforest_residents_124_v3', JSON.stringify(residents));
-        populateInstitutionOptions();
-        renderResidentList();
-        selectResident('RES-001');
+        updateAreaCounts();
+        setAreaFilter('', false);
+        selectResident('RES-001', false);
         showToast('已重置為 124 位預設住民名單');
       }
     }
@@ -1193,18 +1372,6 @@
           </select>
         </div>
       `).join('');
-    }
-
-    function selectResident(resId) {
-      selectedResidentId = resId;
-      const res = residents.find(r => r.id === resId) || residents[0];
-      document.getElementById('selectedResId').textContent = res.id;
-      document.getElementById('selectedResName').textContent = res.name;
-      document.getElementById('selectedResMeta').textContent =
-        `${res.area}｜${res.institution}｜CMS ${res.cms || '-'} 級｜${res.age || '-'} 歲`;
-
-      renderResidentList();
-      loadFormDataForResident(res);
     }
 
     function switchTimepoint(tp) {
@@ -1427,7 +1594,7 @@
 
       assessments[`${res.id}_${currentTimepoint}`] = record;
       localStorage.setItem('rainforest_assessments_v3', JSON.stringify(assessments));
-      renderResidentList();
+      refreshCascadingFilters();
 
       if (uploadToCloud) {
         showToast('⏳ 正在上傳至 Google 雲端試算表...');
